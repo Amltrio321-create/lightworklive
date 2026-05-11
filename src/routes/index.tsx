@@ -1,15 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { MapPin, Camera, ShieldCheck } from "lucide-react";
+import { HardHat, Building2, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/")({
-  component: Landing,
+  component: Portal,
 });
 
-function Landing() {
+function Portal() {
   const { user, role, loading } = useAuth();
   const nav = useNavigate();
 
@@ -26,57 +25,68 @@ function Landing() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="hi-vis-stripe h-3" />
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <img src={logo} alt="Light Work Live" className="h-14 w-auto" />
-          <Link to="/login">
-            <Button variant="outline" size="sm">Sign in</Button>
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10">
+        <Link to="/" className="mb-8">
+          <img src={logo} alt="Light Work Live" className="h-20 w-auto" />
+        </Link>
+
+        <div className="text-center max-w-xl mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">
+            Welcome — how can we help?
+          </h1>
+          <p className="mt-3 text-muted-foreground">
+            Pick the option that describes you to sign in or create an account.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 w-full max-w-3xl">
+          <Link
+            to="/login"
+            search={{ role: "worker" }}
+            className="group relative rounded-2xl border-2 bg-card p-6 sm:p-8 hover:border-primary hover:shadow-lg transition-all"
+          >
+            <div className="w-14 h-14 rounded-xl bg-primary text-primary-foreground inline-flex items-center justify-center mb-4">
+              <HardHat className="w-7 h-7" />
+            </div>
+            <h2 className="text-xl font-bold">I'm looking for work</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Operatives — sign in to start your shift, share your location and
+              upload site photos.
+            </p>
+            <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
+              Continue as worker
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link
+            to="/login"
+            search={{ role: "client" }}
+            className="group relative rounded-2xl border-2 bg-card p-6 sm:p-8 hover:border-accent hover:shadow-lg transition-all"
+          >
+            <div className="w-14 h-14 rounded-xl bg-accent text-accent-foreground inline-flex items-center justify-center mb-4">
+              <Building2 className="w-7 h-7" />
+            </div>
+            <h2 className="text-xl font-bold">I need labour supply</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Clients — sign in to track operatives on your sites in real time
+              and view their hourly photo updates.
+            </p>
+            <span className="mt-4 inline-flex items-center text-sm font-semibold text-accent-foreground">
+              Continue as client
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </span>
           </Link>
         </div>
-      </header>
 
-      <main className="flex-1">
-        <section className="max-w-6xl mx-auto px-4 py-16 sm:py-24">
-          <div className="max-w-2xl">
-            <span className="inline-block px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-semibold uppercase tracking-wider">
-              Traffic management workforce
-            </span>
-            <h1 className="mt-6 text-4xl sm:text-6xl font-bold leading-[1.05]">
-              Eyes on every site, <span className="text-accent">live</span>.
-            </h1>
-            <p className="mt-5 text-lg text-muted-foreground">
-              Workers share their location and hourly photos from site. Clients see
-              exactly who's on the ground, where they are, and what they're doing —
-              in real time.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/login">
-                <Button size="lg" className="font-semibold">Get started</Button>
-              </Link>
-              <Link to="/login">
-                <Button size="lg" variant="outline">Client sign in</Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-16 grid gap-4 sm:grid-cols-3">
-            {[
-              { Icon: MapPin, title: "Live GPS", body: "Continuous location streamed from worker to client while on shift." },
-              { Icon: Camera, title: "Hourly photos", body: "Workers post a quick photo every hour to confirm site presence and conditions." },
-              { Icon: ShieldCheck, title: "Role-based access", body: "Admins assign workers, clients only see their own sites." },
-            ].map(({ Icon, title, body }) => (
-              <div key={title} className="p-5 rounded-lg border bg-card">
-                <div className="w-10 h-10 rounded-md bg-primary text-primary-foreground inline-flex items-center justify-center">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <h3 className="mt-3 font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <p className="text-xs text-muted-foreground mt-8">
+          Admin?{" "}
+          <Link to="/login" className="underline hover:text-foreground">
+            Sign in here
+          </Link>
+          .
+        </p>
       </main>
-
       <div className="hi-vis-stripe h-2" />
     </div>
   );
