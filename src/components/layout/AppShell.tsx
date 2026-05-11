@@ -2,7 +2,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, HardHat } from "lucide-react";
+import { LogOut } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, role, signOut } = useAuth();
