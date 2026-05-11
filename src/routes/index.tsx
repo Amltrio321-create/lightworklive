@@ -28,12 +28,7 @@ function Landing() {
       <div className="hi-vis-stripe h-3" />
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold">
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground">
-              <HardHat className="w-5 h-5" />
-            </span>
-            Light Work Live
-          </div>
+          <img src={logo} alt="Light Work Live" className="h-8 w-auto" />
           <Link to="/login">
             <Button variant="outline" size="sm">Sign in</Button>
           </Link>
