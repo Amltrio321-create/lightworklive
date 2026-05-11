@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { HardHat } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -74,11 +74,8 @@ function LoginPage() {
       <div className="hi-vis-stripe h-2" />
       <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center gap-2 font-bold mb-6 justify-center">
-            <span className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-primary text-primary-foreground">
-              <HardHat className="w-5 h-5" />
-            </span>
-            Light Work Live
+          <Link to="/" className="flex items-center justify-center mb-6">
+            <img src={logo} alt="Light Work Live" className="h-10 w-auto" />
           </Link>
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <Tabs defaultValue="login">
