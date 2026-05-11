@@ -173,12 +173,18 @@ function ClientPage() {
             Workers currently on your sites.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <Plus className="w-4 h-4 mr-1" /> Add site
+        <div className="flex items-center gap-2">
+          <Link to="/client/live">
+            <Button>
+              <Radar className="w-4 h-4 mr-1" /> Live map
             </Button>
-          </DialogTrigger>
+          </Link>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="w-4 h-4 mr-1" /> Add site
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add a site</DialogTitle>
