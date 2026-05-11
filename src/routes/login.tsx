@@ -84,7 +84,7 @@ function LoginPage() {
             <img src={logo} alt="Light Work Live" className="h-20 w-auto" />
           </Link>
           <div className="rounded-xl border bg-card p-6 shadow-sm">
-            <Tabs defaultValue="login">
+            <Tabs defaultValue={presetRole ? "signup" : "login"}>
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="login">Sign in</TabsTrigger>
                 <TabsTrigger value="signup">Create account</TabsTrigger>
