@@ -56,7 +56,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SiteOps — Traffic Management Workforce" },
+      { title: "Light Work Live — Traffic Management Workforce" },
       {
         name: "description",
         content:

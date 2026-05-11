@@ -78,7 +78,7 @@ function LoginPage() {
             <span className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-primary text-primary-foreground">
               <HardHat className="w-5 h-5" />
             </span>
-            SiteOps
+            Light Work Live
           </Link>
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <Tabs defaultValue="login">

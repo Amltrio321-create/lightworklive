@@ -19,7 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground">
               <HardHat className="w-5 h-5" />
             </span>
-            <span>SiteOps</span>
+            <span>Light Work Live</span>
             {role && (
               <span className="ml-2 text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-accent text-accent-foreground">
                 {role}

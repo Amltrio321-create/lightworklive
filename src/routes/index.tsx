@@ -31,7 +31,7 @@ function Landing() {
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground">
               <HardHat className="w-5 h-5" />
             </span>
-            SiteOps
+            Light Work Live
           </div>
           <Link to="/login">
             <Button variant="outline" size="sm">Sign in</Button>
