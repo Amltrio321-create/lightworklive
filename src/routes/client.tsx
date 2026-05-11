@@ -204,6 +204,7 @@ function ClientPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <section>
