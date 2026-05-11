@@ -11,12 +11,18 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    role: (search.role === "worker" || search.role === "client"
+      ? (search.role as AppRole)
+      : undefined) as AppRole | undefined,
+  }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const { user, role, loading } = useAuth();
   const nav = useNavigate();
+  const { role: presetRole } = Route.useSearch();
   const [busy, setBusy] = useState(false);
 
   // Login fields
@@ -28,7 +34,7 @@ function LoginPage() {
   const [sPassword, setSPassword] = useState("");
   const [sFullName, setSFullName] = useState("");
   const [sCompany, setSCompany] = useState("");
-  const [sRole, setSRole] = useState<AppRole>("worker");
+  const [sRole, setSRole] = useState<AppRole>(presetRole ?? "worker");
 
   useEffect(() => {
     if (loading) return;
