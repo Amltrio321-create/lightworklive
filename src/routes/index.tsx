@@ -28,7 +28,7 @@ function Landing() {
       <div className="hi-vis-stripe h-3" />
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <img src={logo} alt="Light Work Live" className="h-8 w-auto" />
+          <img src={logo} alt="Light Work Live" className="h-14 w-auto" />
           <Link to="/login">
             <Button variant="outline" size="sm">Sign in</Button>
           </Link>
