@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { RequireRole } from "@/components/auth/RequireRole";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapPin, Camera, Plus, Clock } from "lucide-react";
+import { MapPin, Camera, Plus, Clock, Radar } from "lucide-react";
 import { MapEmbed } from "@/components/MapEmbed";
 import { getSignedPhotoUrl } from "@/lib/photos";
 
@@ -173,12 +173,18 @@ function ClientPage() {
             Workers currently on your sites.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <Plus className="w-4 h-4 mr-1" /> Add site
+        <div className="flex items-center gap-2">
+          <Link to="/client/live">
+            <Button>
+              <Radar className="w-4 h-4 mr-1" /> Live map
             </Button>
-          </DialogTrigger>
+          </Link>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="w-4 h-4 mr-1" /> Add site
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add a site</DialogTitle>
@@ -198,6 +204,7 @@ function ClientPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <section>
