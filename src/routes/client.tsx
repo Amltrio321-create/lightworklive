@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { RequireRole } from "@/components/auth/RequireRole";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapPin, Camera, Plus, Clock } from "lucide-react";
+import { MapPin, Camera, Plus, Clock, Radar } from "lucide-react";
 import { MapEmbed } from "@/components/MapEmbed";
 import { getSignedPhotoUrl } from "@/lib/photos";
 
