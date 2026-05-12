@@ -95,28 +95,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company_address: string | null
           company_name: string | null
           created_at: string
           full_name: string | null
           id: string
           phone: string | null
+          right_to_work: boolean
+          trade: string | null
           updated_at: string
+          worker_ref: string | null
         }
         Insert: {
+          company_address?: string | null
           company_name?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           phone?: string | null
+          right_to_work?: boolean
+          trade?: string | null
           updated_at?: string
+          worker_ref?: string | null
         }
         Update: {
+          company_address?: string | null
           company_name?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           phone?: string | null
+          right_to_work?: boolean
+          trade?: string | null
           updated_at?: string
+          worker_ref?: string | null
         }
         Relationships: []
       }
