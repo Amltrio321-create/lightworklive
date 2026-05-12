@@ -9,6 +9,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
+import {
+  WorkerSignupFields,
+  WorkerFieldsValue,
+} from "@/components/auth/WorkerSignupFields";
+import {
+  ClientSignupFields,
+  ClientFieldsValue,
+} from "@/components/auth/ClientSignupFields";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -33,8 +41,19 @@ function LoginPage() {
   const [sEmail, setSEmail] = useState("");
   const [sPassword, setSPassword] = useState("");
   const [sFullName, setSFullName] = useState("");
-  const [sCompany, setSCompany] = useState("");
+  const [sPhone, setSPhone] = useState("");
   const [sRole, setSRole] = useState<AppRole>(presetRole ?? "worker");
+  const [worker, setWorker] = useState<WorkerFieldsValue>({
+    workerRef: "",
+    trade: "",
+    rightToWork: false,
+  });
+  const [client, setClient] = useState<ClientFieldsValue>({
+    companyName: "",
+    companyAddress: "",
+    siteName: "",
+    siteAddress: "",
+  });
 
   useEffect(() => {
     if (loading) return;
@@ -57,22 +76,62 @@ function LoginPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Role-specific validation
+    if (sRole === "worker") {
+      if (!worker.trade) return toast.error("Please select your trade");
+      if (!worker.rightToWork)
+        return toast.error("Please confirm your right to work");
+    } else if (sRole === "client") {
+      if (!client.companyName.trim())
+        return toast.error("Company name is required");
+      if (!client.siteName.trim())
+        return toast.error("Please add your first site name");
+    }
+
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const metadata: Record<string, string | boolean> = {
+      full_name: sFullName,
+      phone: sPhone,
+      role: sRole,
+    };
+    if (sRole === "worker") {
+      metadata.worker_ref = worker.workerRef;
+      metadata.trade = worker.trade;
+      metadata.right_to_work = worker.rightToWork;
+    } else if (sRole === "client") {
+      metadata.company_name = client.companyName;
+      metadata.company_address = client.companyAddress;
+    }
+
+    const { data, error } = await supabase.auth.signUp({
       email: sEmail,
       password: sPassword,
       options: {
         emailRedirectTo: window.location.origin,
-        data: {
-          full_name: sFullName,
-          company_name: sCompany,
-          role: sRole,
-        },
+        data: metadata,
       },
     });
+
+    if (error) {
+      setBusy(false);
+      return toast.error(error.message);
+    }
+
+    // For client signup, create the first site if we have a session
+    if (sRole === "client" && data.session && client.siteName.trim()) {
+      const { error: siteErr } = await supabase.from("sites").insert({
+        client_id: data.session.user.id,
+        name: client.siteName.trim(),
+        address: client.siteAddress.trim() || null,
+      });
+      if (siteErr) {
+        toast.error(`Account created, but site failed: ${siteErr.message}`);
+      }
+    }
+
     setBusy(false);
-    if (error) toast.error(error.message);
-    else toast.success("Account created — you can sign in now");
+    toast.success("Account created — you can sign in now");
   };
 
   return (
@@ -109,10 +168,6 @@ function LoginPage() {
               <TabsContent value="signup" className="mt-6">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="sFullName">Full name</Label>
-                    <Input id="sFullName" required value={sFullName} onChange={(e) => setSFullName(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
                     <Label>I am a…</Label>
                     <RadioGroup value={sRole} onValueChange={(v) => setSRole(v as AppRole)} className="grid grid-cols-2 gap-2">
                       <label className="flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
@@ -123,12 +178,23 @@ function LoginPage() {
                       </label>
                     </RadioGroup>
                   </div>
-                  {sRole === "client" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="sCompany">Company name</Label>
-                      <Input id="sCompany" value={sCompany} onChange={(e) => setSCompany(e.target.value)} />
-                    </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sFullName">Full name</Label>
+                    <Input id="sFullName" required value={sFullName} onChange={(e) => setSFullName(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sPhone">Phone</Label>
+                    <Input id="sPhone" type="tel" required value={sPhone} onChange={(e) => setSPhone(e.target.value)} />
+                  </div>
+
+                  {sRole === "worker" && (
+                    <WorkerSignupFields value={worker} onChange={setWorker} />
                   )}
+                  {sRole === "client" && (
+                    <ClientSignupFields value={client} onChange={setClient} />
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="sEmail">Email</Label>
                     <Input id="sEmail" type="email" required value={sEmail} onChange={(e) => setSEmail(e.target.value)} />
