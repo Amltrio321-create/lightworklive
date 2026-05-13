@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkerInvoicesRouteImport } from './routes/worker.invoices'
 import { Route as ClientLiveRouteImport } from './routes/client.live'
 
 const WorkerRoute = WorkerRouteImport.update({
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkerInvoicesRoute = WorkerInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => WorkerRoute,
+} as any)
 const ClientLiveRoute = ClientLiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -52,16 +58,18 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/client': typeof ClientRouteWithChildren
   '/login': typeof LoginRoute
-  '/worker': typeof WorkerRoute
+  '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
+  '/worker/invoices': typeof WorkerInvoicesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/client': typeof ClientRouteWithChildren
   '/login': typeof LoginRoute
-  '/worker': typeof WorkerRoute
+  '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
+  '/worker/invoices': typeof WorkerInvoicesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,14 +77,29 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/client': typeof ClientRouteWithChildren
   '/login': typeof LoginRoute
-  '/worker': typeof WorkerRoute
+  '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
+  '/worker/invoices': typeof WorkerInvoicesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/client' | '/login' | '/worker' | '/client/live'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/client'
+    | '/login'
+    | '/worker'
+    | '/client/live'
+    | '/worker/invoices'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/client' | '/login' | '/worker' | '/client/live'
+  to:
+    | '/'
+    | '/admin'
+    | '/client'
+    | '/login'
+    | '/worker'
+    | '/client/live'
+    | '/worker/invoices'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/worker'
     | '/client/live'
+    | '/worker/invoices'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -92,7 +116,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ClientRoute: typeof ClientRouteWithChildren
   LoginRoute: typeof LoginRoute
-  WorkerRoute: typeof WorkerRoute
+  WorkerRoute: typeof WorkerRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -132,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/worker/invoices': {
+      id: '/worker/invoices'
+      path: '/invoices'
+      fullPath: '/worker/invoices'
+      preLoaderRoute: typeof WorkerInvoicesRouteImport
+      parentRoute: typeof WorkerRoute
+    }
     '/client/live': {
       id: '/client/live'
       path: '/live'
@@ -153,13 +184,34 @@ const ClientRouteChildren: ClientRouteChildren = {
 const ClientRouteWithChildren =
   ClientRoute._addFileChildren(ClientRouteChildren)
 
+interface WorkerRouteChildren {
+  WorkerInvoicesRoute: typeof WorkerInvoicesRoute
+}
+
+const WorkerRouteChildren: WorkerRouteChildren = {
+  WorkerInvoicesRoute: WorkerInvoicesRoute,
+}
+
+const WorkerRouteWithChildren =
+  WorkerRoute._addFileChildren(WorkerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ClientRoute: ClientRouteWithChildren,
   LoginRoute: LoginRoute,
-  WorkerRoute: WorkerRoute,
+  WorkerRoute: WorkerRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
