@@ -71,11 +71,13 @@ function AdminPage() {
           <TabsTrigger value="users"><Users className="w-4 h-4 mr-1" />Users</TabsTrigger>
           <TabsTrigger value="sites"><Building2 className="w-4 h-4 mr-1" />Sites</TabsTrigger>
           <TabsTrigger value="shifts"><HardHat className="w-4 h-4 mr-1" />Shifts</TabsTrigger>
+          <TabsTrigger value="invoices"><Receipt className="w-4 h-4 mr-1" />Invoices</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-4"><OverviewTab /></TabsContent>
         <TabsContent value="users" className="mt-4"><UsersTab /></TabsContent>
         <TabsContent value="sites" className="mt-4"><SitesTab /></TabsContent>
         <TabsContent value="shifts" className="mt-4"><ShiftsTab /></TabsContent>
+        <TabsContent value="invoices" className="mt-4"><InvoicesTab /></TabsContent>
       </Tabs>
     </div>
   );
