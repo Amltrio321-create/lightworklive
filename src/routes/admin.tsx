@@ -543,15 +543,20 @@ function ShiftsTab() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!workerId || !siteId) return toast.error("Pick worker and site");
+    const rateNum = rate ? Number(rate) : null;
+    if (rate && (!Number.isFinite(rateNum!) || rateNum! <= 0))
+      return toast.error("Hourly rate must be a positive number");
     const { error } = await supabase.from("shifts").insert({
       worker_id: workerId,
       site_id: siteId,
       scheduled_start: new Date(start).toISOString(),
+      hourly_rate: rateNum,
     });
     if (error) return toast.error(error.message);
     toast.success("Shift assigned");
     setWorkerId("");
     setSiteId("");
+    setRate("");
     load();
   };
 
