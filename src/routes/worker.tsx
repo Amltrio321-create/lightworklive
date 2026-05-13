@@ -205,11 +205,19 @@ function WorkerPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Worker dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Start your shift to begin live location sharing.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Worker dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Start your shift to begin live location sharing.
+          </p>
+        </div>
+        <a
+          href="/worker/invoices"
+          className="text-sm font-medium underline-offset-2 hover:underline shrink-0"
+        >
+          My invoices →
+        </a>
       </div>
 
       {!active && (
