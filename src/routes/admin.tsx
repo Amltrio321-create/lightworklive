@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Square, Radar, Users, Building2, HardHat, Activity } from "lucide-react";
+import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle } from "lucide-react";
 import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
