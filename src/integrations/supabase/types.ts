@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      invoice_items: {
+        Row: {
+          amount: number
+          created_at: string
+          hourly_rate: number
+          hours: number
+          id: string
+          invoice_id: string
+          shift_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          hourly_rate: number
+          hours: number
+          id?: string
+          invoice_id: string
+          shift_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          hourly_rate?: number
+          hours?: number
+          id?: string
+          invoice_id?: string
+          shift_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: true
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          cis_deduction: number
+          cis_rate: number
+          created_at: string
+          gross_amount: number
+          id: string
+          invoice_number: string
+          net_amount: number
+          period_end: string
+          period_start: string
+          status: string
+          total_hours: number
+          worker_id: string
+        }
+        Insert: {
+          cis_deduction?: number
+          cis_rate?: number
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          invoice_number: string
+          net_amount?: number
+          period_end: string
+          period_start: string
+          status?: string
+          total_hours?: number
+          worker_id: string
+        }
+        Update: {
+          cis_deduction?: number
+          cis_rate?: number
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          invoice_number?: string
+          net_amount?: number
+          period_end?: string
+          period_start?: string
+          status?: string
+          total_hours?: number
+          worker_id?: string
+        }
+        Relationships: []
+      }
       location_pings: {
         Row: {
           accuracy: number | null
@@ -95,6 +185,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cis_rate: number
           company_address: string | null
           company_name: string | null
           created_at: string
@@ -104,9 +195,11 @@ export type Database = {
           right_to_work: boolean
           trade: string | null
           updated_at: string
+          utr_number: string | null
           worker_ref: string | null
         }
         Insert: {
+          cis_rate?: number
           company_address?: string | null
           company_name?: string | null
           created_at?: string
@@ -116,9 +209,11 @@ export type Database = {
           right_to_work?: boolean
           trade?: string | null
           updated_at?: string
+          utr_number?: string | null
           worker_ref?: string | null
         }
         Update: {
+          cis_rate?: number
           company_address?: string | null
           company_name?: string | null
           created_at?: string
@@ -128,6 +223,7 @@ export type Database = {
           right_to_work?: boolean
           trade?: string | null
           updated_at?: string
+          utr_number?: string | null
           worker_ref?: string | null
         }
         Relationships: []
@@ -136,6 +232,7 @@ export type Database = {
         Row: {
           created_at: string
           ended_at: string | null
+          hourly_rate: number | null
           id: string
           notes: string | null
           scheduled_end: string | null
@@ -148,6 +245,7 @@ export type Database = {
         Insert: {
           created_at?: string
           ended_at?: string | null
+          hourly_rate?: number | null
           id?: string
           notes?: string | null
           scheduled_end?: string | null
@@ -160,6 +258,7 @@ export type Database = {
         Update: {
           created_at?: string
           ended_at?: string | null
+          hourly_rate?: number | null
           id?: string
           notes?: string | null
           scheduled_end?: string | null
@@ -235,6 +334,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_weekly_invoices: {
+        Args: { _period_end: string; _period_start: string }
+        Returns: number
+      }
       get_primary_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

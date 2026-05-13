@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Square, Radar, Users, Building2, HardHat, Activity } from "lucide-react";
+import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle } from "lucide-react";
 import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -52,6 +52,7 @@ type ShiftRow = {
   scheduled_start: string;
   started_at: string | null;
   ended_at: string | null;
+  hourly_rate: number | null;
   sites?: { name: string } | null;
   worker_name?: string | null;
 };
@@ -70,11 +71,13 @@ function AdminPage() {
           <TabsTrigger value="users"><Users className="w-4 h-4 mr-1" />Users</TabsTrigger>
           <TabsTrigger value="sites"><Building2 className="w-4 h-4 mr-1" />Sites</TabsTrigger>
           <TabsTrigger value="shifts"><HardHat className="w-4 h-4 mr-1" />Shifts</TabsTrigger>
+          <TabsTrigger value="invoices"><Receipt className="w-4 h-4 mr-1" />Invoices</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-4"><OverviewTab /></TabsContent>
         <TabsContent value="users" className="mt-4"><UsersTab /></TabsContent>
         <TabsContent value="sites" className="mt-4"><SitesTab /></TabsContent>
         <TabsContent value="shifts" className="mt-4"><ShiftsTab /></TabsContent>
+        <TabsContent value="invoices" className="mt-4"><InvoicesTab /></TabsContent>
       </Tabs>
     </div>
   );
@@ -491,6 +494,7 @@ function ShiftsTab() {
   const [sites, setSites] = useState<{ id: string; name: string }[]>([]);
   const [workerId, setWorkerId] = useState("");
   const [siteId, setSiteId] = useState("");
+  const [rate, setRate] = useState("");
   const [start, setStart] = useState(() =>
     new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
   );
@@ -539,15 +543,20 @@ function ShiftsTab() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!workerId || !siteId) return toast.error("Pick worker and site");
+    const rateNum = rate ? Number(rate) : null;
+    if (rate && (!Number.isFinite(rateNum!) || rateNum! <= 0))
+      return toast.error("Hourly rate must be a positive number");
     const { error } = await supabase.from("shifts").insert({
       worker_id: workerId,
       site_id: siteId,
       scheduled_start: new Date(start).toISOString(),
+      hourly_rate: rateNum,
     });
     if (error) return toast.error(error.message);
     toast.success("Shift assigned");
     setWorkerId("");
     setSiteId("");
+    setRate("");
     load();
   };
 
@@ -578,6 +587,7 @@ function ShiftsTab() {
               <th className="text-left p-3">When</th>
               <th className="text-left p-3">Worker</th>
               <th className="text-left p-3">Site</th>
+              <th className="text-left p-3">Rate</th>
               <th className="text-left p-3">Status</th>
               <th className="p-3 w-24" />
             </tr>
@@ -588,6 +598,7 @@ function ShiftsTab() {
                 <td className="p-3">{new Date(s.scheduled_start).toLocaleString()}</td>
                 <td className="p-3">{s.worker_name ?? "—"}</td>
                 <td className="p-3">{s.sites?.name}</td>
+                <td className="p-3">{s.hourly_rate != null ? `£${Number(s.hourly_rate).toFixed(2)}/hr` : "—"}</td>
                 <td className="p-3">
                   <span
                     className={`inline-block px-2 py-0.5 rounded text-xs uppercase ${
@@ -629,7 +640,7 @@ function ShiftsTab() {
             ))}
             {shifts.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                <td colSpan={6} className="p-6 text-center text-muted-foreground">
                   No shifts yet.
                 </td>
               </tr>
@@ -677,8 +688,170 @@ function ShiftsTab() {
             onChange={(e) => setStart(e.target.value)}
           />
         </div>
+        <div className="space-y-1">
+          <Label>Hourly rate (£)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="e.g. 18.50"
+            value={rate}
+            onChange={(e) => setRate(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">Used for weekly CIS invoice generation.</p>
+        </div>
         <Button type="submit" className="w-full">Assign</Button>
       </form>
+    </div>
+  );
+}
+
+/* ---------------- Invoices ---------------- */
+
+type InvoiceRow = {
+  id: string;
+  invoice_number: string;
+  worker_id: string;
+  period_start: string;
+  period_end: string;
+  total_hours: number;
+  gross_amount: number;
+  cis_rate: number;
+  cis_deduction: number;
+  net_amount: number;
+  status: string;
+  created_at: string;
+  worker_name?: string | null;
+};
+
+function InvoicesTab() {
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase
+      .from("invoices")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    const ids = Array.from(new Set((data ?? []).map((i) => i.worker_id)));
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    const byId = new Map((profs ?? []).map((p) => [p.id, p.full_name]));
+    setInvoices(
+      (data ?? []).map((i) => ({
+        ...(i as InvoiceRow),
+        worker_name: byId.get(i.worker_id) ?? null,
+      })),
+    );
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const generateNow = async () => {
+    setBusy(true);
+    // Previous Mon–Sun
+    const today = new Date();
+    const day = today.getDay() || 7; // 1..7 (Mon=1)
+    const lastSun = new Date(today);
+    lastSun.setDate(today.getDate() - day);
+    const lastMon = new Date(lastSun);
+    lastMon.setDate(lastSun.getDate() - 6);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const { data, error } = await supabase.rpc("generate_weekly_invoices", {
+      _period_start: fmt(lastMon),
+      _period_end: fmt(lastSun),
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Generated ${data ?? 0} invoice(s) for ${fmt(lastMon)} → ${fmt(lastSun)}`);
+    load();
+  };
+
+  const setStatus = async (id: string, status: string) => {
+    const { error } = await supabase.from("invoices").update({ status }).eq("id", id);
+    if (error) return toast.error(error.message);
+    load();
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this invoice? Its line items will be removed.")) return;
+    const { error } = await supabase.from("invoices").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Invoice deleted");
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h3 className="font-semibold">CIS invoices</h3>
+          <p className="text-xs text-muted-foreground">
+            Auto-generated every Monday for the previous week's ended shifts. CIS deducted at each worker's rate.
+          </p>
+        </div>
+        <Button onClick={generateNow} disabled={busy}>
+          <PlayCircle className="w-4 h-4 mr-1" />
+          {busy ? "Generating…" : "Generate last week now"}
+        </Button>
+      </div>
+      <div className="rounded-lg border bg-card overflow-x-auto">
+        <table className="w-full text-sm min-w-[760px]">
+          <thead className="bg-muted text-xs uppercase tracking-wider">
+            <tr>
+              <th className="text-left p-3">Invoice #</th>
+              <th className="text-left p-3">Worker</th>
+              <th className="text-left p-3">Period</th>
+              <th className="text-right p-3">Hours</th>
+              <th className="text-right p-3">Gross</th>
+              <th className="text-right p-3">CIS</th>
+              <th className="text-right p-3">Net</th>
+              <th className="text-left p-3">Status</th>
+              <th className="p-3 w-32" />
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.map((i) => (
+              <tr key={i.id} className="border-t">
+                <td className="p-3 font-mono text-xs">{i.invoice_number}</td>
+                <td className="p-3">{i.worker_name ?? "—"}</td>
+                <td className="p-3">{i.period_start} → {i.period_end}</td>
+                <td className="p-3 text-right">{Number(i.total_hours).toFixed(2)}</td>
+                <td className="p-3 text-right">£{Number(i.gross_amount).toFixed(2)}</td>
+                <td className="p-3 text-right">£{Number(i.cis_deduction).toFixed(2)} ({Number(i.cis_rate).toFixed(0)}%)</td>
+                <td className="p-3 text-right font-semibold">£{Number(i.net_amount).toFixed(2)}</td>
+                <td className="p-3">
+                  <Select value={i.status} onValueChange={(v) => setStatus(i.id, v)}>
+                    <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </td>
+                <td className="p-3 text-right">
+                  <Button size="icon" variant="ghost" onClick={() => remove(i.id)} aria-label="Delete invoice">
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan={9} className="p-6 text-center text-muted-foreground">
+                  No invoices yet. Assign shifts with hourly rates, then click "Generate last week now".
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
