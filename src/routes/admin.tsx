@@ -587,6 +587,7 @@ function ShiftsTab() {
               <th className="text-left p-3">When</th>
               <th className="text-left p-3">Worker</th>
               <th className="text-left p-3">Site</th>
+              <th className="text-left p-3">Rate</th>
               <th className="text-left p-3">Status</th>
               <th className="p-3 w-24" />
             </tr>
@@ -597,6 +598,7 @@ function ShiftsTab() {
                 <td className="p-3">{new Date(s.scheduled_start).toLocaleString()}</td>
                 <td className="p-3">{s.worker_name ?? "—"}</td>
                 <td className="p-3">{s.sites?.name}</td>
+                <td className="p-3">{s.hourly_rate != null ? `£${Number(s.hourly_rate).toFixed(2)}/hr` : "—"}</td>
                 <td className="p-3">
                   <span
                     className={`inline-block px-2 py-0.5 rounded text-xs uppercase ${
@@ -638,7 +640,7 @@ function ShiftsTab() {
             ))}
             {shifts.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                <td colSpan={6} className="p-6 text-center text-muted-foreground">
                   No shifts yet.
                 </td>
               </tr>
