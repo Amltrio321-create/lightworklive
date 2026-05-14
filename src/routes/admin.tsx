@@ -36,6 +36,7 @@ type ProfileRow = {
   worker_ref: string | null;
   trade: string | null;
   right_to_work: boolean | null;
+  utr_number: string | null;
   roles: AppRole[];
 };
 
@@ -225,7 +226,7 @@ function UsersTab() {
   const load = useCallback(async () => {
     const { data: profs } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, company_name, company_address, worker_ref, trade, right_to_work")
+      .select("id, full_name, phone, company_name, company_address, worker_ref, trade, right_to_work, utr_number")
       .order("full_name");
     const ids = (profs ?? []).map((p) => p.id);
     const { data: roles } = await supabase
@@ -307,6 +308,7 @@ function UsersTab() {
                       <>
                         {u.trade && <div><span className="text-muted-foreground">Trade:</span> {u.trade}</div>}
                         {u.worker_ref && <div><span className="text-muted-foreground">Ref:</span> {u.worker_ref}</div>}
+                        <UtrEditor profileId={u.id} initial={u.utr_number} onSaved={load} />
                         <div className={u.right_to_work ? "text-success" : "text-destructive"}>
                           {u.right_to_work ? "✓ Right to work" : "⚠ No right-to-work confirmation"}
                         </div>
@@ -354,6 +356,39 @@ function UsersTab() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function UtrEditor({ profileId, initial, onSaved }: { profileId: string; initial: string | null; onSaved: () => void }) {
+  const [val, setVal] = useState(initial ?? "");
+  const [saving, setSaving] = useState(false);
+  const clean = val.replace(/\s+/g, "").toUpperCase();
+  const ok = /^\d{10}K?$/.test(clean);
+  const dirty = clean !== (initial ?? "");
+  const save = async () => {
+    if (!ok) return toast.error("UTR must be 10 digits, optional trailing K");
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ utr_number: clean }).eq("id", profileId);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("UTR saved");
+    onSaved();
+  };
+  return (
+    <div className="flex items-center gap-1 mt-1">
+      <span className="text-muted-foreground">UTR:</span>
+      <Input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        className={`h-6 w-32 text-xs ${val && !ok ? "border-destructive" : ""}`}
+        placeholder="10 digits"
+      />
+      {dirty && (
+        <Button size="sm" variant="outline" className="h-6 px-2 text-xs" disabled={!ok || saving} onClick={save}>
+          {saving ? "…" : "Save"}
+        </Button>
+      )}
     </div>
   );
 }
