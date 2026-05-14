@@ -794,6 +794,41 @@ function InvoicesTab() {
     load();
   };
 
+  const sendOne = async (id: string) => {
+    setSendingId(id);
+    try {
+      const res = await sendFn({ data: { invoiceId: id } });
+      if (res.emailDelivered) {
+        toast.success(`Emailed ${res.invoiceNumber} to ${res.recipient}`);
+      } else {
+        toast.warning(
+          `Marked ${res.invoiceNumber} as sent. Email not delivered: ${res.deliveryNote}`,
+          { duration: 8000 },
+        );
+      }
+      load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const sendAllDrafts = async () => {
+    const drafts = invoices.filter((i) => i.status === "draft");
+    if (drafts.length === 0) return toast.info("No draft invoices to send");
+    if (!confirm(`Send ${drafts.length} draft invoice(s) to workers?`)) return;
+    setBusy(true);
+    let ok = 0, fail = 0;
+    for (const inv of drafts) {
+      try { await sendFn({ data: { invoiceId: inv.id } }); ok++; }
+      catch { fail++; }
+    }
+    setBusy(false);
+    toast.success(`Sent ${ok} · failed ${fail}`);
+    load();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -803,10 +838,15 @@ function InvoicesTab() {
             Auto-generated every Monday for the previous week's ended shifts. CIS deducted at each worker's rate.
           </p>
         </div>
-        <Button onClick={generateNow} disabled={busy}>
-          <PlayCircle className="w-4 h-4 mr-1" />
-          {busy ? "Generating…" : "Generate last week now"}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={sendAllDrafts} disabled={busy}>
+            <Send className="w-4 h-4 mr-1" />Send all drafts
+          </Button>
+          <Button onClick={generateNow} disabled={busy}>
+            <PlayCircle className="w-4 h-4 mr-1" />
+            {busy ? "Working…" : "Generate last week now"}
+          </Button>
+        </div>
       </div>
       <div className="rounded-lg border bg-card overflow-x-auto">
         <table className="w-full text-sm min-w-[760px]">
