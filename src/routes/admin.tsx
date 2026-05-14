@@ -860,14 +860,22 @@ function InvoicesTab() {
               <th className="text-right p-3">CIS</th>
               <th className="text-right p-3">Net</th>
               <th className="text-left p-3">Status</th>
-              <th className="p-3 w-32" />
+              <th className="p-3 w-44" />
             </tr>
           </thead>
           <tbody>
-            {invoices.map((i) => (
+            {invoices.map((i) => {
+              const utr = utrByWorker[i.worker_id];
+              const utrOk = !!utr && /^\d{10}K?$/i.test(utr);
+              return (
               <tr key={i.id} className="border-t">
                 <td className="p-3 font-mono text-xs">{i.invoice_number}</td>
-                <td className="p-3">{i.worker_name ?? "—"}</td>
+                <td className="p-3">
+                  <div>{i.worker_name ?? "—"}</div>
+                  <div className={`text-xs ${utrOk ? "text-muted-foreground" : "text-destructive"}`}>
+                    {utrOk ? `UTR ${utr}` : "⚠ UTR missing/invalid"}
+                  </div>
+                </td>
                 <td className="p-3">{i.period_start} → {i.period_end}</td>
                 <td className="p-3 text-right">{Number(i.total_hours).toFixed(2)}</td>
                 <td className="p-3 text-right">£{Number(i.gross_amount).toFixed(2)}</td>
@@ -883,13 +891,26 @@ function InvoicesTab() {
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="p-3 text-right">
-                  <Button size="icon" variant="ghost" onClick={() => remove(i.id)} aria-label="Delete invoice">
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                <td className="p-3">
+                  <div className="flex gap-1 justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={!utrOk || sendingId === i.id}
+                      onClick={() => sendOne(i.id)}
+                      title={utrOk ? "Email invoice to worker" : "Worker UTR is required"}
+                    >
+                      <Send className="w-3.5 h-3.5 mr-1" />
+                      {sendingId === i.id ? "Sending…" : "Send"}
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => remove(i.id)} aria-label="Delete invoice">
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {invoices.length === 0 && (
               <tr>
                 <td colSpan={9} className="p-6 text-center text-muted-foreground">
