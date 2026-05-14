@@ -70,6 +70,7 @@ export type Database = {
           net_amount: number
           period_end: string
           period_start: string
+          sent_at: string | null
           status: string
           total_hours: number
           worker_id: string
@@ -84,6 +85,7 @@ export type Database = {
           net_amount?: number
           period_end: string
           period_start: string
+          sent_at?: string | null
           status?: string
           total_hours?: number
           worker_id: string
@@ -98,6 +100,7 @@ export type Database = {
           net_amount?: number
           period_end?: string
           period_start?: string
+          sent_at?: string | null
           status?: string
           total_hours?: number
           worker_id?: string
