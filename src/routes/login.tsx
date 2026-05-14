@@ -47,6 +47,7 @@ function LoginPage() {
     workerRef: "",
     trade: "",
     rightToWork: false,
+    utrNumber: "",
   });
   const [client, setClient] = useState<ClientFieldsValue>({
     companyName: "",
@@ -82,6 +83,9 @@ function LoginPage() {
       if (!worker.trade) return toast.error("Please select your trade");
       if (!worker.rightToWork)
         return toast.error("Please confirm your right to work");
+      const { isValidUtr } = await import("@/components/auth/WorkerSignupFields");
+      if (!isValidUtr(worker.utrNumber))
+        return toast.error("Enter a valid UTR (10 digits, optional trailing K)");
     } else if (sRole === "client") {
       if (!client.companyName.trim())
         return toast.error("Company name is required");
@@ -99,6 +103,7 @@ function LoginPage() {
       metadata.worker_ref = worker.workerRef;
       metadata.trade = worker.trade;
       metadata.right_to_work = worker.rightToWork;
+      metadata.utr_number = worker.utrNumber.replace(/\s+/g, "").toUpperCase();
     } else if (sRole === "client") {
       metadata.company_name = client.companyName;
       metadata.company_address = client.companyAddress;

@@ -14,7 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle } from "lucide-react";
+import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle, Send } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { sendInvoiceEmail } from "@/lib/invoices.functions";
 import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -34,6 +36,7 @@ type ProfileRow = {
   worker_ref: string | null;
   trade: string | null;
   right_to_work: boolean | null;
+  utr_number: string | null;
   roles: AppRole[];
 };
 
@@ -223,7 +226,7 @@ function UsersTab() {
   const load = useCallback(async () => {
     const { data: profs } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, company_name, company_address, worker_ref, trade, right_to_work")
+      .select("id, full_name, phone, company_name, company_address, worker_ref, trade, right_to_work, utr_number")
       .order("full_name");
     const ids = (profs ?? []).map((p) => p.id);
     const { data: roles } = await supabase
@@ -305,6 +308,7 @@ function UsersTab() {
                       <>
                         {u.trade && <div><span className="text-muted-foreground">Trade:</span> {u.trade}</div>}
                         {u.worker_ref && <div><span className="text-muted-foreground">Ref:</span> {u.worker_ref}</div>}
+                        <UtrEditor profileId={u.id} initial={u.utr_number} onSaved={load} />
                         <div className={u.right_to_work ? "text-success" : "text-destructive"}>
                           {u.right_to_work ? "✓ Right to work" : "⚠ No right-to-work confirmation"}
                         </div>
@@ -352,6 +356,39 @@ function UsersTab() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function UtrEditor({ profileId, initial, onSaved }: { profileId: string; initial: string | null; onSaved: () => void }) {
+  const [val, setVal] = useState(initial ?? "");
+  const [saving, setSaving] = useState(false);
+  const clean = val.replace(/\s+/g, "").toUpperCase();
+  const ok = /^\d{10}K?$/.test(clean);
+  const dirty = clean !== (initial ?? "");
+  const save = async () => {
+    if (!ok) return toast.error("UTR must be 10 digits, optional trailing K");
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ utr_number: clean }).eq("id", profileId);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("UTR saved");
+    onSaved();
+  };
+  return (
+    <div className="flex items-center gap-1 mt-1">
+      <span className="text-muted-foreground">UTR:</span>
+      <Input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        className={`h-6 w-32 text-xs ${val && !ok ? "border-destructive" : ""}`}
+        placeholder="10 digits"
+      />
+      {dirty && (
+        <Button size="sm" variant="outline" className="h-6 px-2 text-xs" disabled={!ok || saving} onClick={save}>
+          {saving ? "…" : "Save"}
+        </Button>
+      )}
     </div>
   );
 }
@@ -727,6 +764,9 @@ type InvoiceRow = {
 function InvoicesTab() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [utrByWorker, setUtrByWorker] = useState<Record<string, string | null>>({});
+  const sendFn = useServerFn(sendInvoiceEmail);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -737,9 +777,12 @@ function InvoicesTab() {
     const ids = Array.from(new Set((data ?? []).map((i) => i.worker_id)));
     const { data: profs } = await supabase
       .from("profiles")
-      .select("id, full_name")
+      .select("id, full_name, utr_number")
       .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
     const byId = new Map((profs ?? []).map((p) => [p.id, p.full_name]));
+    const utrMap: Record<string, string | null> = {};
+    (profs ?? []).forEach((p) => { utrMap[p.id] = p.utr_number ?? null; });
+    setUtrByWorker(utrMap);
     setInvoices(
       (data ?? []).map((i) => ({
         ...(i as InvoiceRow),
@@ -786,6 +829,41 @@ function InvoicesTab() {
     load();
   };
 
+  const sendOne = async (id: string) => {
+    setSendingId(id);
+    try {
+      const res = await sendFn({ data: { invoiceId: id } });
+      if (res.emailDelivered) {
+        toast.success(`Emailed ${res.invoiceNumber} to ${res.recipient}`);
+      } else {
+        toast.warning(
+          `Marked ${res.invoiceNumber} as sent. Email not delivered: ${res.deliveryNote}`,
+          { duration: 8000 },
+        );
+      }
+      load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const sendAllDrafts = async () => {
+    const drafts = invoices.filter((i) => i.status === "draft");
+    if (drafts.length === 0) return toast.info("No draft invoices to send");
+    if (!confirm(`Send ${drafts.length} draft invoice(s) to workers?`)) return;
+    setBusy(true);
+    let ok = 0, fail = 0;
+    for (const inv of drafts) {
+      try { await sendFn({ data: { invoiceId: inv.id } }); ok++; }
+      catch { fail++; }
+    }
+    setBusy(false);
+    toast.success(`Sent ${ok} · failed ${fail}`);
+    load();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -795,10 +873,15 @@ function InvoicesTab() {
             Auto-generated every Monday for the previous week's ended shifts. CIS deducted at each worker's rate.
           </p>
         </div>
-        <Button onClick={generateNow} disabled={busy}>
-          <PlayCircle className="w-4 h-4 mr-1" />
-          {busy ? "Generating…" : "Generate last week now"}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={sendAllDrafts} disabled={busy}>
+            <Send className="w-4 h-4 mr-1" />Send all drafts
+          </Button>
+          <Button onClick={generateNow} disabled={busy}>
+            <PlayCircle className="w-4 h-4 mr-1" />
+            {busy ? "Working…" : "Generate last week now"}
+          </Button>
+        </div>
       </div>
       <div className="rounded-lg border bg-card overflow-x-auto">
         <table className="w-full text-sm min-w-[760px]">
@@ -812,14 +895,22 @@ function InvoicesTab() {
               <th className="text-right p-3">CIS</th>
               <th className="text-right p-3">Net</th>
               <th className="text-left p-3">Status</th>
-              <th className="p-3 w-32" />
+              <th className="p-3 w-44" />
             </tr>
           </thead>
           <tbody>
-            {invoices.map((i) => (
+            {invoices.map((i) => {
+              const utr = utrByWorker[i.worker_id];
+              const utrOk = !!utr && /^\d{10}K?$/i.test(utr);
+              return (
               <tr key={i.id} className="border-t">
                 <td className="p-3 font-mono text-xs">{i.invoice_number}</td>
-                <td className="p-3">{i.worker_name ?? "—"}</td>
+                <td className="p-3">
+                  <div>{i.worker_name ?? "—"}</div>
+                  <div className={`text-xs ${utrOk ? "text-muted-foreground" : "text-destructive"}`}>
+                    {utrOk ? `UTR ${utr}` : "⚠ UTR missing/invalid"}
+                  </div>
+                </td>
                 <td className="p-3">{i.period_start} → {i.period_end}</td>
                 <td className="p-3 text-right">{Number(i.total_hours).toFixed(2)}</td>
                 <td className="p-3 text-right">£{Number(i.gross_amount).toFixed(2)}</td>
@@ -835,13 +926,26 @@ function InvoicesTab() {
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="p-3 text-right">
-                  <Button size="icon" variant="ghost" onClick={() => remove(i.id)} aria-label="Delete invoice">
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                <td className="p-3">
+                  <div className="flex gap-1 justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={!utrOk || sendingId === i.id}
+                      onClick={() => sendOne(i.id)}
+                      title={utrOk ? "Email invoice to worker" : "Worker UTR is required"}
+                    >
+                      <Send className="w-3.5 h-3.5 mr-1" />
+                      {sendingId === i.id ? "Sending…" : "Send"}
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => remove(i.id)} aria-label="Delete invoice">
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {invoices.length === 0 && (
               <tr>
                 <td colSpan={9} className="p-6 text-center text-muted-foreground">
