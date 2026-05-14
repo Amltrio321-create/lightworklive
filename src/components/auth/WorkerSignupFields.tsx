@@ -6,7 +6,14 @@ export type WorkerFieldsValue = {
   workerRef: string;
   trade: string;
   rightToWork: boolean;
+  utrNumber: string;
 };
+
+// UK UTR: 10 digits, sometimes with trailing 'K'
+export const UTR_REGEX = /^\d{10}K?$/i;
+export function isValidUtr(v: string) {
+  return UTR_REGEX.test(v.replace(/\s+/g, ""));
+}
 
 const TRADES = [
   "Traffic Marshal",
@@ -50,6 +57,20 @@ export function WorkerSignupFields({
             </option>
           ))}
         </select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="utr">UTR number (self-employed CIS)</Label>
+        <Input
+          id="utr"
+          required
+          inputMode="numeric"
+          value={value.utrNumber}
+          onChange={(e) => onChange({ ...value, utrNumber: e.target.value })}
+          placeholder="10 digits, e.g. 1234567890"
+        />
+        <p className="text-xs text-muted-foreground">
+          Required for CIS invoices. 10 digits (optionally followed by K).
+        </p>
       </div>
       <label className="flex items-start gap-2 cursor-pointer">
         <Checkbox
