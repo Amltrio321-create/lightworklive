@@ -14,7 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle } from "lucide-react";
+import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle, Send } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { sendInvoiceEmail } from "@/lib/invoices.functions";
 import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -727,6 +729,9 @@ type InvoiceRow = {
 function InvoicesTab() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [utrByWorker, setUtrByWorker] = useState<Record<string, string | null>>({});
+  const sendFn = useServerFn(sendInvoiceEmail);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -737,9 +742,12 @@ function InvoicesTab() {
     const ids = Array.from(new Set((data ?? []).map((i) => i.worker_id)));
     const { data: profs } = await supabase
       .from("profiles")
-      .select("id, full_name")
+      .select("id, full_name, utr_number")
       .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
     const byId = new Map((profs ?? []).map((p) => [p.id, p.full_name]));
+    const utrMap: Record<string, string | null> = {};
+    (profs ?? []).forEach((p) => { utrMap[p.id] = p.utr_number ?? null; });
+    setUtrByWorker(utrMap);
     setInvoices(
       (data ?? []).map((i) => ({
         ...(i as InvoiceRow),
