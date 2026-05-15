@@ -356,6 +356,14 @@ export type Database = {
         Args: { _shift_id: string; _user_id: string }
         Returns: boolean
       }
+      is_site_client: {
+        Args: { _site_id: string; _user_id: string }
+        Returns: boolean
+      }
+      worker_assigned_to_site: {
+        Args: { _site_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "worker" | "client"
