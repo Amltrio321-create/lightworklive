@@ -181,10 +181,8 @@ function WorkerPage() {
     loadShifts();
   };
 
-  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !active || !user) return;
+  const uploadPhoto = async (file: File, cap: string) => {
+    if (!active || !user) return;
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "jpg";
@@ -194,7 +192,6 @@ function WorkerPage() {
         .upload(path, file, { contentType: file.type });
       if (upErr) throw upErr;
 
-      // Get current location for the photo
       const coords = await new Promise<GeolocationCoordinates | null>((resolve) => {
         if (!("geolocation" in navigator)) return resolve(null);
         navigator.geolocation.getCurrentPosition(
@@ -208,18 +205,34 @@ function WorkerPage() {
         shift_id: active.id,
         worker_id: user.id,
         photo_path: path,
-        caption: caption.trim() || null,
+        caption: cap.trim() || null,
         latitude: coords?.latitude ?? null,
         longitude: coords?.longitude ?? null,
       });
       if (insErr) throw insErr;
       setCaption("");
+      setLastUpload({ status: "success", at: new Date() });
       toast.success("Photo uploaded");
       loadPhotos(active.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setLastUpload({ status: "error", message, file, caption: cap });
+      toast.error(message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    await uploadPhoto(file, caption);
+  };
+
+  const retryUpload = () => {
+    if (lastUpload?.status === "error") {
+      void uploadPhoto(lastUpload.file, lastUpload.caption);
     }
   };
 
