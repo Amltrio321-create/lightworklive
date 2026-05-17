@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Camera, MapPin, Play, Square, Clock, AlertCircle } from "lucide-react";
+import { Camera, MapPin, Play, Square, Clock, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
 import { getSignedPhotoUrl } from "@/lib/photos";
+import { Progress } from "@/components/ui/progress";
 
 type Shift = {
   id: string;
