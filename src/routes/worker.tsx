@@ -51,12 +51,31 @@ function WorkerPage() {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [lastUpload, setLastUpload] = useState<
+    | { status: "success"; at: Date }
+    | { status: "error"; message: string; file: File; caption: string }
+    | null
+  >(null);
+  const [now, setNow] = useState(() => Date.now());
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Tick every 30s so countdown / "X min ago" stays fresh
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const lastPhotoAt = photos[0]?.taken_at ? new Date(photos[0].taken_at) : null;
   const minutesSincePhoto = lastPhotoAt
-    ? Math.floor((Date.now() - lastPhotoAt.getTime()) / 60000)
+    ? Math.floor((now - lastPhotoAt.getTime()) / 60000)
     : null;
   const photoDue = !lastPhotoAt || (minutesSincePhoto ?? 0) >= 60;
+  const minutesUntilDue = lastPhotoAt
+    ? Math.max(0, 60 - (minutesSincePhoto ?? 0))
+    : 0;
+  const hourProgress = lastPhotoAt
+    ? Math.min(100, Math.round(((minutesSincePhoto ?? 0) / 60) * 100))
+    : 100;
 
   const loadShifts = useCallback(async () => {
     if (!user) return;
