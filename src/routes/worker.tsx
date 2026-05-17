@@ -344,13 +344,55 @@ function WorkerPage() {
           </section>
 
           <section className={`rounded-lg border p-5 ${photoDue ? "border-warning bg-warning/10" : "bg-card"}`}>
-            <h3 className="font-semibold flex items-center gap-2">
-              <Camera className="w-4 h-4" />
-              {photoDue ? "Photo update due" : "Add a photo"}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Take a photo every hour while on site.
-            </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Camera className="w-4 h-4" />
+                  {photoDue ? "Photo update due" : "Next photo due"}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {photoDue
+                    ? lastPhotoAt
+                      ? `Last photo ${minutesSincePhoto} min ago — take a new one now.`
+                      : "Take your first photo to start the hourly cycle."
+                    : `In ${minutesUntilDue} min — one photo per hour.`}
+                </p>
+              </div>
+              {!photoDue && (
+                <div className="text-right shrink-0">
+                  <div className="text-2xl font-bold tabular-nums">{minutesUntilDue}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">min left</div>
+                </div>
+              )}
+            </div>
+            <Progress value={hourProgress} className={`mt-3 ${photoDue ? "bg-warning/30" : ""}`} />
+            {lastUpload?.status === "success" && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-success">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Photo uploaded at {lastUpload.at.toLocaleTimeString()}</span>
+              </div>
+            )}
+            {lastUpload?.status === "error" && (
+              <div className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3">
+                <div className="flex items-start gap-2 text-sm text-destructive">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Upload failed</div>
+                    <div className="text-xs mt-0.5 break-words">{lastUpload.message}</div>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 w-full"
+                  onClick={retryUpload}
+                  disabled={uploading}
+                >
+                  <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                  {uploading ? "Retrying…" : "Retry upload"}
+                </Button>
+              </div>
+            )}
             <div className="mt-3 space-y-3">
               <div>
                 <Label htmlFor="cap" className="text-xs">Caption (optional)</Label>
