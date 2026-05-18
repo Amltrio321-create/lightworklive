@@ -192,9 +192,11 @@ export type Database = {
           company_address: string | null
           company_name: string | null
           created_at: string
+          driving_licence: string | null
           full_name: string | null
           id: string
           phone: string | null
+          qualifications: string[]
           right_to_work: boolean
           trade: string | null
           updated_at: string
@@ -206,9 +208,11 @@ export type Database = {
           company_address?: string | null
           company_name?: string | null
           created_at?: string
+          driving_licence?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
+          qualifications?: string[]
           right_to_work?: boolean
           trade?: string | null
           updated_at?: string
@@ -220,9 +224,11 @@ export type Database = {
           company_address?: string | null
           company_name?: string | null
           created_at?: string
+          driving_licence?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          qualifications?: string[]
           right_to_work?: boolean
           trade?: string | null
           updated_at?: string
