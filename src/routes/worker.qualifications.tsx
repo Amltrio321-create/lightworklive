@@ -283,6 +283,3 @@ function QualCard({
     </div>
   );
 }
-
-// Re-export to satisfy unused import linter if Textarea isn't needed
-export { Textarea };
