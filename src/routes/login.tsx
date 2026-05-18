@@ -48,6 +48,8 @@ function LoginPage() {
     trade: "",
     rightToWork: false,
     utrNumber: "",
+    qualifications: [],
+    drivingLicence: "",
   });
   const [client, setClient] = useState<ClientFieldsValue>({
     companyName: "",
@@ -94,7 +96,7 @@ function LoginPage() {
     }
 
     setBusy(true);
-    const metadata: Record<string, string | boolean> = {
+    const metadata: Record<string, string | boolean | string[]> = {
       full_name: sFullName,
       phone: sPhone,
       role: sRole,
@@ -104,6 +106,8 @@ function LoginPage() {
       metadata.trade = worker.trade;
       metadata.right_to_work = worker.rightToWork;
       metadata.utr_number = worker.utrNumber.replace(/\s+/g, "").toUpperCase();
+      metadata.qualifications = worker.qualifications;
+      metadata.driving_licence = worker.drivingLicence;
     } else if (sRole === "client") {
       metadata.company_name = client.companyName;
       metadata.company_address = client.companyAddress;
