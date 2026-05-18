@@ -170,11 +170,20 @@ function WorkerPage() {
   }, [active, user]);
 
   const startShift = async (shift: Shift) => {
+    if ((verifiedQuals ?? 0) === 0) {
+      toast.error("You need at least one admin-verified qualification before starting a shift.");
+      return;
+    }
     const { error } = await supabase
       .from("shifts")
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", shift.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = /verified qualification/i.test(error.message)
+        ? "An admin must verify at least one of your qualifications first."
+        : error.message;
+      return toast.error(msg);
+    }
     toast.success("Shift started");
     loadShifts();
   };
