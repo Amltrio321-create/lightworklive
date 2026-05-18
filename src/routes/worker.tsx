@@ -57,6 +57,7 @@ function WorkerPage() {
     | null
   >(null);
   const [now, setNow] = useState(() => Date.now());
+  const [verifiedQuals, setVerifiedQuals] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Tick every 30s so countdown / "X min ago" stays fresh
