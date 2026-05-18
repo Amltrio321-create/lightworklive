@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle, Send } from "lucide-react";
+import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle, Send, ShieldCheck, Check, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendInvoiceEmail } from "@/lib/invoices.functions";
 import type { AppRole } from "@/hooks/use-auth";
