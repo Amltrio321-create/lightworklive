@@ -263,13 +263,36 @@ function WorkerPage() {
             Start your shift to begin live location sharing.
           </p>
         </div>
-        <a
-          href="/worker/invoices"
-          className="text-sm font-medium underline-offset-2 hover:underline shrink-0"
-        >
-          My invoices →
-        </a>
+        <div className="flex flex-col items-end gap-1 text-sm shrink-0">
+          <a href="/worker/qualifications" className="font-medium underline-offset-2 hover:underline">
+            My qualifications →
+          </a>
+          <a href="/worker/invoices" className="font-medium underline-offset-2 hover:underline">
+            My invoices →
+          </a>
+        </div>
       </div>
+
+      {verifiedQuals === 0 && (
+        <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 mt-0.5 text-warning shrink-0" />
+            <div className="text-sm flex-1">
+              <div className="font-semibold">Qualifications not verified yet</div>
+              <p className="text-muted-foreground mt-0.5">
+                Upload photos of your cards/tickets so an admin can verify them.
+                You can't start a shift until at least one is verified.
+              </p>
+              <a
+                href="/worker/qualifications"
+                className="inline-block mt-2 text-sm font-medium underline"
+              >
+                Upload qualifications →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!active && (
         <section className="space-y-3">
