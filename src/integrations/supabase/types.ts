@@ -347,27 +347,11 @@ export type Database = {
         Args: { _period_end: string; _period_start: string }
         Returns: number
       }
-      get_primary_role: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
-        Returns: boolean
-      }
-      is_shift_client: {
-        Args: { _shift_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_site_client: {
-        Args: { _site_id: string; _user_id: string }
-        Returns: boolean
-      }
-      worker_assigned_to_site: {
-        Args: { _site_id: string; _user_id: string }
         Returns: boolean
       }
     }
