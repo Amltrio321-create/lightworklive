@@ -48,6 +48,8 @@ function LoginPage() {
     trade: "",
     rightToWork: false,
     utrNumber: "",
+    qualifications: [],
+    drivingLicence: "",
   });
   const [client, setClient] = useState<ClientFieldsValue>({
     companyName: "",
