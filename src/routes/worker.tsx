@@ -80,16 +80,24 @@ function WorkerPage() {
 
   const loadShifts = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("shifts")
-      .select("*, sites(name, address)")
-      .eq("worker_id", user.id)
-      .in("status", ["scheduled", "active"])
-      .order("scheduled_start", { ascending: true });
+    const [{ data }, { count }] = await Promise.all([
+      supabase
+        .from("shifts")
+        .select("*, sites(name, address)")
+        .eq("worker_id", user.id)
+        .in("status", ["scheduled", "active"])
+        .order("scheduled_start", { ascending: true }),
+      supabase
+        .from("worker_qualifications")
+        .select("id", { count: "exact", head: true })
+        .eq("worker_id", user.id)
+        .eq("status", "verified"),
+    ]);
     const list = (data ?? []) as Shift[];
     setShifts(list);
     const a = list.find((s) => s.status === "active") ?? null;
     setActive(a);
+    setVerifiedQuals(count ?? 0);
   }, [user]);
 
   const loadPhotos = useCallback(async (shiftId: string) => {
