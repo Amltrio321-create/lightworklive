@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkerQualificationsRouteImport } from './routes/worker.qualifications'
 import { Route as WorkerInvoicesRouteImport } from './routes/worker.invoices'
 import { Route as ClientLiveRouteImport } from './routes/client.live'
 
@@ -42,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkerQualificationsRoute = WorkerQualificationsRouteImport.update({
+  id: '/qualifications',
+  path: '/qualifications',
+  getParentRoute: () => WorkerRoute,
+} as any)
 const WorkerInvoicesRoute = WorkerInvoicesRouteImport.update({
   id: '/invoices',
   path: '/invoices',
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
+  '/worker/qualifications': typeof WorkerQualificationsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
+  '/worker/qualifications': typeof WorkerQualificationsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
+  '/worker/qualifications': typeof WorkerQualificationsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/worker'
     | '/client/live'
     | '/worker/invoices'
+    | '/worker/qualifications'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/worker'
     | '/client/live'
     | '/worker/invoices'
+    | '/worker/qualifications'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/worker'
     | '/client/live'
     | '/worker/invoices'
+    | '/worker/qualifications'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/worker/qualifications': {
+      id: '/worker/qualifications'
+      path: '/qualifications'
+      fullPath: '/worker/qualifications'
+      preLoaderRoute: typeof WorkerQualificationsRouteImport
+      parentRoute: typeof WorkerRoute
+    }
     '/worker/invoices': {
       id: '/worker/invoices'
       path: '/invoices'
@@ -186,10 +205,12 @@ const ClientRouteWithChildren =
 
 interface WorkerRouteChildren {
   WorkerInvoicesRoute: typeof WorkerInvoicesRoute
+  WorkerQualificationsRoute: typeof WorkerQualificationsRoute
 }
 
 const WorkerRouteChildren: WorkerRouteChildren = {
   WorkerInvoicesRoute: WorkerInvoicesRoute,
+  WorkerQualificationsRoute: WorkerQualificationsRoute,
 }
 
 const WorkerRouteWithChildren =

@@ -57,6 +57,7 @@ function WorkerPage() {
     | null
   >(null);
   const [now, setNow] = useState(() => Date.now());
+  const [verifiedQuals, setVerifiedQuals] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Tick every 30s so countdown / "X min ago" stays fresh
@@ -79,16 +80,24 @@ function WorkerPage() {
 
   const loadShifts = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("shifts")
-      .select("*, sites(name, address)")
-      .eq("worker_id", user.id)
-      .in("status", ["scheduled", "active"])
-      .order("scheduled_start", { ascending: true });
+    const [{ data }, { count }] = await Promise.all([
+      supabase
+        .from("shifts")
+        .select("*, sites(name, address)")
+        .eq("worker_id", user.id)
+        .in("status", ["scheduled", "active"])
+        .order("scheduled_start", { ascending: true }),
+      supabase
+        .from("worker_qualifications")
+        .select("id", { count: "exact", head: true })
+        .eq("worker_id", user.id)
+        .eq("status", "verified"),
+    ]);
     const list = (data ?? []) as Shift[];
     setShifts(list);
     const a = list.find((s) => s.status === "active") ?? null;
     setActive(a);
+    setVerifiedQuals(count ?? 0);
   }, [user]);
 
   const loadPhotos = useCallback(async (shiftId: string) => {
@@ -161,11 +170,20 @@ function WorkerPage() {
   }, [active, user]);
 
   const startShift = async (shift: Shift) => {
+    if ((verifiedQuals ?? 0) === 0) {
+      toast.error("You need at least one admin-verified qualification before starting a shift.");
+      return;
+    }
     const { error } = await supabase
       .from("shifts")
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", shift.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = /verified qualification/i.test(error.message)
+        ? "An admin must verify at least one of your qualifications first."
+        : error.message;
+      return toast.error(msg);
+    }
     toast.success("Shift started");
     loadShifts();
   };
@@ -245,13 +263,36 @@ function WorkerPage() {
             Start your shift to begin live location sharing.
           </p>
         </div>
-        <a
-          href="/worker/invoices"
-          className="text-sm font-medium underline-offset-2 hover:underline shrink-0"
-        >
-          My invoices →
-        </a>
+        <div className="flex flex-col items-end gap-1 text-sm shrink-0">
+          <a href="/worker/qualifications" className="font-medium underline-offset-2 hover:underline">
+            My qualifications →
+          </a>
+          <a href="/worker/invoices" className="font-medium underline-offset-2 hover:underline">
+            My invoices →
+          </a>
+        </div>
       </div>
+
+      {verifiedQuals === 0 && (
+        <div className="rounded-lg border border-warning/50 bg-warning/10 p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 mt-0.5 text-warning shrink-0" />
+            <div className="text-sm flex-1">
+              <div className="font-semibold">Qualifications not verified yet</div>
+              <p className="text-muted-foreground mt-0.5">
+                Upload photos of your cards/tickets so an admin can verify them.
+                You can't start a shift until at least one is verified.
+              </p>
+              <a
+                href="/worker/qualifications"
+                className="inline-block mt-2 text-sm font-medium underline"
+              >
+                Upload qualifications →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!active && (
         <section className="space-y-3">
@@ -275,7 +316,12 @@ function WorkerPage() {
                     {new Date(s.scheduled_start).toLocaleString()}
                   </div>
                 </div>
-                <Button onClick={() => startShift(s)} className="font-semibold">
+                <Button
+                  onClick={() => startShift(s)}
+                  className="font-semibold"
+                  disabled={verifiedQuals === 0}
+                  title={verifiedQuals === 0 ? "Awaiting qualification verification" : undefined}
+                >
                   <Play className="w-4 h-4 mr-1" /> Start
                 </Button>
               </div>

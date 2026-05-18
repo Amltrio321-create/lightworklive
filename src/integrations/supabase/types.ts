@@ -338,6 +338,45 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_qualifications: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          photo_path: string
+          qualification: string
+          status: Database["public"]["Enums"]["qualification_status"]
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_path: string
+          qualification: string
+          status?: Database["public"]["Enums"]["qualification_status"]
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_path?: string
+          qualification?: string
+          status?: Database["public"]["Enums"]["qualification_status"]
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          worker_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -357,6 +396,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "worker" | "client"
+      qualification_status: "pending" | "verified" | "rejected"
       shift_status: "scheduled" | "active" | "ended"
     }
     CompositeTypes: {
@@ -486,6 +526,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "worker", "client"],
+      qualification_status: ["pending", "verified", "rejected"],
       shift_status: ["scheduled", "active", "ended"],
     },
   },
