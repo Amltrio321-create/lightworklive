@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Camera, MapPin, Play, Square, Clock, AlertCircle } from "lucide-react";
+import { Camera, MapPin, Play, Square, Clock, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
 import { getSignedPhotoUrl } from "@/lib/photos";
+import { Progress } from "@/components/ui/progress";
 
 type Shift = {
   id: string;
@@ -50,12 +51,31 @@ function WorkerPage() {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [lastUpload, setLastUpload] = useState<
+    | { status: "success"; at: Date }
+    | { status: "error"; message: string; file: File; caption: string }
+    | null
+  >(null);
+  const [now, setNow] = useState(() => Date.now());
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Tick every 30s so countdown / "X min ago" stays fresh
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const lastPhotoAt = photos[0]?.taken_at ? new Date(photos[0].taken_at) : null;
   const minutesSincePhoto = lastPhotoAt
-    ? Math.floor((Date.now() - lastPhotoAt.getTime()) / 60000)
+    ? Math.floor((now - lastPhotoAt.getTime()) / 60000)
     : null;
   const photoDue = !lastPhotoAt || (minutesSincePhoto ?? 0) >= 60;
+  const minutesUntilDue = lastPhotoAt
+    ? Math.max(0, 60 - (minutesSincePhoto ?? 0))
+    : 0;
+  const hourProgress = lastPhotoAt
+    ? Math.min(100, Math.round(((minutesSincePhoto ?? 0) / 60) * 100))
+    : 100;
 
   const loadShifts = useCallback(async () => {
     if (!user) return;
@@ -161,10 +181,8 @@ function WorkerPage() {
     loadShifts();
   };
 
-  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !active || !user) return;
+  const uploadPhoto = async (file: File, cap: string) => {
+    if (!active || !user) return;
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "jpg";
@@ -174,7 +192,6 @@ function WorkerPage() {
         .upload(path, file, { contentType: file.type });
       if (upErr) throw upErr;
 
-      // Get current location for the photo
       const coords = await new Promise<GeolocationCoordinates | null>((resolve) => {
         if (!("geolocation" in navigator)) return resolve(null);
         navigator.geolocation.getCurrentPosition(
@@ -188,18 +205,34 @@ function WorkerPage() {
         shift_id: active.id,
         worker_id: user.id,
         photo_path: path,
-        caption: caption.trim() || null,
+        caption: cap.trim() || null,
         latitude: coords?.latitude ?? null,
         longitude: coords?.longitude ?? null,
       });
       if (insErr) throw insErr;
       setCaption("");
+      setLastUpload({ status: "success", at: new Date() });
       toast.success("Photo uploaded");
       loadPhotos(active.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setLastUpload({ status: "error", message, file, caption: cap });
+      toast.error(message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    await uploadPhoto(file, caption);
+  };
+
+  const retryUpload = () => {
+    if (lastUpload?.status === "error") {
+      void uploadPhoto(lastUpload.file, lastUpload.caption);
     }
   };
 
@@ -311,13 +344,55 @@ function WorkerPage() {
           </section>
 
           <section className={`rounded-lg border p-5 ${photoDue ? "border-warning bg-warning/10" : "bg-card"}`}>
-            <h3 className="font-semibold flex items-center gap-2">
-              <Camera className="w-4 h-4" />
-              {photoDue ? "Photo update due" : "Add a photo"}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Take a photo every hour while on site.
-            </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Camera className="w-4 h-4" />
+                  {photoDue ? "Photo update due" : "Next photo due"}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {photoDue
+                    ? lastPhotoAt
+                      ? `Last photo ${minutesSincePhoto} min ago — take a new one now.`
+                      : "Take your first photo to start the hourly cycle."
+                    : `In ${minutesUntilDue} min — one photo per hour.`}
+                </p>
+              </div>
+              {!photoDue && (
+                <div className="text-right shrink-0">
+                  <div className="text-2xl font-bold tabular-nums">{minutesUntilDue}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">min left</div>
+                </div>
+              )}
+            </div>
+            <Progress value={hourProgress} className={`mt-3 ${photoDue ? "bg-warning/30" : ""}`} />
+            {lastUpload?.status === "success" && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-success">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Photo uploaded at {lastUpload.at.toLocaleTimeString()}</span>
+              </div>
+            )}
+            {lastUpload?.status === "error" && (
+              <div className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3">
+                <div className="flex items-start gap-2 text-sm text-destructive">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Upload failed</div>
+                    <div className="text-xs mt-0.5 break-words">{lastUpload.message}</div>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 w-full"
+                  onClick={retryUpload}
+                  disabled={uploading}
+                >
+                  <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                  {uploading ? "Retrying…" : "Retry upload"}
+                </Button>
+              </div>
+            )}
             <div className="mt-3 space-y-3">
               <div>
                 <Label htmlFor="cap" className="text-xs">Caption (optional)</Label>
@@ -341,9 +416,10 @@ function WorkerPage() {
                 disabled={uploading}
                 className="w-full font-semibold"
                 size="lg"
+                variant={photoDue ? "default" : "secondary"}
               >
                 <Camera className="w-5 h-5 mr-2" />
-                {uploading ? "Uploading…" : "Take photo"}
+                {uploading ? "Uploading…" : photoDue ? "Take photo now" : "Take photo"}
               </Button>
             </div>
           </section>
