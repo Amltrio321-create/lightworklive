@@ -961,3 +961,185 @@ function InvoicesTab() {
     </div>
   );
 }
+
+// ==================== Qualifications verification ====================
+
+type AdminQualRow = {
+  id: string;
+  worker_id: string;
+  qualification: string;
+  photo_path: string;
+  status: "pending" | "verified" | "rejected";
+  notes: string | null;
+  verified_at: string | null;
+  created_at: string;
+  worker_name?: string | null;
+};
+
+function QualificationsTab() {
+  const [rows, setRows] = useState<AdminQualRow[]>([]);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState<"pending" | "verified" | "rejected" | "all">("pending");
+  const [noteFor, setNoteFor] = useState<Record<string, string>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("worker_qualifications")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) return toast.error(error.message);
+    const list = (data ?? []) as AdminQualRow[];
+    const workerIds = Array.from(new Set(list.map((r) => r.worker_id)));
+    if (workerIds.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", workerIds);
+      const map = new Map((profs ?? []).map((p) => [p.id, p.full_name]));
+      list.forEach((r) => {
+        r.worker_name = map.get(r.worker_id) ?? null;
+      });
+    }
+    setRows(list);
+
+    // Fetch signed URLs (lazy import to avoid circular)
+    const { getSignedPhotoUrl } = await import("@/lib/photos");
+    const urlMap: Record<string, string> = {};
+    await Promise.all(
+      list.map(async (r) => {
+        const u = await getSignedPhotoUrl(r.photo_path, "qualification-photos");
+        if (u) urlMap[r.id] = u;
+      }),
+    );
+    setUrls(urlMap);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const decide = async (row: AdminQualRow, status: "verified" | "rejected") => {
+    setBusyId(row.id);
+    const notes = status === "rejected" ? (noteFor[row.id] ?? "").trim() || null : null;
+    const { error } = await supabase
+      .from("worker_qualifications")
+      .update({
+        status,
+        notes,
+        verified_at: new Date().toISOString(),
+      })
+      .eq("id", row.id);
+    setBusyId(null);
+    if (error) return toast.error(error.message);
+    toast.success(status === "verified" ? "Qualification verified" : "Qualification rejected");
+    load();
+  };
+
+  const filtered = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  const pendingCount = rows.filter((r) => r.status === "pending").length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        {(["pending", "verified", "rejected", "all"] as const).map((f) => (
+          <Button
+            key={f}
+            size="sm"
+            variant={filter === f ? "default" : "outline"}
+            onClick={() => setFilter(f)}
+          >
+            {f === "pending" && pendingCount > 0 && (
+              <span className="mr-1 bg-warning text-warning-foreground rounded-full px-1.5 text-xs">
+                {pendingCount}
+              </span>
+            )}
+            {f[0].toUpperCase() + f.slice(1)}
+          </Button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
+          No {filter === "all" ? "" : filter} qualifications.
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {filtered.map((r) => (
+            <div key={r.id} className="rounded-lg border bg-card p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold">{r.worker_name ?? "Unknown worker"}</div>
+                  <div className="text-sm text-muted-foreground">{r.qualification}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Submitted {new Date(r.created_at).toLocaleString()}
+                  </div>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    r.status === "verified"
+                      ? "bg-success/20 text-success"
+                      : r.status === "rejected"
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-warning/20 text-warning-foreground"
+                  }`}
+                >
+                  {r.status}
+                </span>
+              </div>
+
+              {urls[r.id] ? (
+                <a href={urls[r.id]} target="_blank" rel="noreferrer">
+                  <img
+                    src={urls[r.id]}
+                    alt={r.qualification}
+                    className="w-full max-h-64 object-contain rounded border bg-muted"
+                  />
+                </a>
+              ) : (
+                <div className="w-full h-48 bg-muted animate-pulse rounded" />
+              )}
+
+              {r.status === "rejected" && r.notes && (
+                <p className="text-xs text-muted-foreground">
+                  Rejection note: {r.notes}
+                </p>
+              )}
+
+              {r.status === "pending" && (
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Optional rejection note"
+                    value={noteFor[r.id] ?? ""}
+                    onChange={(e) =>
+                      setNoteFor((m) => ({ ...m, [r.id]: e.target.value }))
+                    }
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => decide(r, "verified")}
+                      disabled={busyId === r.id}
+                      className="flex-1"
+                    >
+                      <Check className="w-4 h-4 mr-1" /> Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => decide(r, "rejected")}
+                      disabled={busyId === r.id}
+                      className="flex-1"
+                    >
+                      <X className="w-4 h-4 mr-1" /> Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
