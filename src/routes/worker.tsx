@@ -316,7 +316,12 @@ function WorkerPage() {
                     {new Date(s.scheduled_start).toLocaleString()}
                   </div>
                 </div>
-                <Button onClick={() => startShift(s)} className="font-semibold">
+                <Button
+                  onClick={() => startShift(s)}
+                  className="font-semibold"
+                  disabled={verifiedQuals === 0}
+                  title={verifiedQuals === 0 ? "Awaiting qualification verification" : undefined}
+                >
                   <Play className="w-4 h-4 mr-1" /> Start
                 </Button>
               </div>
