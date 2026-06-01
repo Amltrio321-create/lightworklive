@@ -92,6 +92,14 @@ function LoginPage() {
       const { isValidUtr } = await import("@/components/auth/WorkerSignupFields");
       if (!isValidUtr(worker.utrNumber))
         return toast.error("Enter a valid UTR (10 digits, optional trailing K)");
+      if (
+        !worker.agreementsAccepted ||
+        !worker.vehiclePolicyAccepted ||
+        !worker.drugAlcoholAccepted
+      )
+        return toast.error(
+          "Please accept the Operative Agreement, Vehicle Policy and Drugs & Alcohol Policy"
+        );
     } else if (sRole === "client") {
       if (!client.companyName.trim())
         return toast.error("Company name is required");
@@ -100,6 +108,7 @@ function LoginPage() {
     }
 
     setBusy(true);
+    const { AGREEMENTS_VERSION } = await import("@/lib/legal");
     const metadata: Record<string, string | boolean | string[]> = {
       full_name: sFullName,
       phone: sPhone,
@@ -112,6 +121,11 @@ function LoginPage() {
       metadata.utr_number = worker.utrNumber.replace(/\s+/g, "").toUpperCase();
       metadata.qualifications = worker.qualifications;
       metadata.driving_licence = worker.drivingLicence;
+      metadata.agreements_version = AGREEMENTS_VERSION;
+      metadata.agreements_accepted = worker.agreementsAccepted;
+      metadata.vehicle_policy_accepted = worker.vehiclePolicyAccepted;
+      metadata.drug_alcohol_policy_accepted = worker.drugAlcoholAccepted;
+      metadata.working_time_optout_accepted = worker.workingTimeOptOut;
     } else if (sRole === "client") {
       metadata.company_name = client.companyName;
       metadata.company_address = client.companyAddress;
