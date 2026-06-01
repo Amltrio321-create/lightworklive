@@ -50,6 +50,10 @@ function LoginPage() {
     utrNumber: "",
     qualifications: [],
     drivingLicence: "",
+    agreementsAccepted: false,
+    vehiclePolicyAccepted: false,
+    drugAlcoholAccepted: false,
+    workingTimeOptOut: false,
   });
   const [client, setClient] = useState<ClientFieldsValue>({
     companyName: "",
