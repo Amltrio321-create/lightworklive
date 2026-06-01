@@ -9,6 +9,10 @@ export type WorkerFieldsValue = {
   utrNumber: string;
   qualifications: string[];
   drivingLicence: string;
+  agreementsAccepted: boolean;
+  vehiclePolicyAccepted: boolean;
+  drugAlcoholAccepted: boolean;
+  workingTimeOptOut: boolean;
 };
 
 // UK UTR: 10 digits, sometimes with trailing 'K'
@@ -166,6 +170,103 @@ export function WorkerSignupFields({
           I confirm I have the legal right to work in the UK.
         </span>
       </label>
+
+      <div className="space-y-3 rounded-md border border-primary/30 bg-background p-3">
+        <p className="text-sm font-semibold">Agreements &amp; policies</p>
+        <p className="text-xs text-muted-foreground">
+          Read each document, then tick to accept. All are required to be booked
+          on shifts.
+        </p>
+
+        <label className="flex items-start gap-2 cursor-pointer">
+          <Checkbox
+            checked={value.agreementsAccepted}
+            onCheckedChange={(c) =>
+              onChange({ ...value, agreementsAccepted: c === true })
+            }
+            className="mt-0.5"
+          />
+          <span className="text-sm">
+            I have read and accept the{" "}
+            <a
+              href="/legal?doc=operative-agreement"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-primary"
+            >
+              Self-Employed Operative Agreement
+            </a>
+            .
+          </span>
+        </label>
+
+        <label className="flex items-start gap-2 cursor-pointer">
+          <Checkbox
+            checked={value.vehiclePolicyAccepted}
+            onCheckedChange={(c) =>
+              onChange({ ...value, vehiclePolicyAccepted: c === true })
+            }
+            className="mt-0.5"
+          />
+          <span className="text-sm">
+            I accept the{" "}
+            <a
+              href="/legal?doc=vehicle-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-primary"
+            >
+              Vehicle Use Policy
+            </a>{" "}
+            for Company and client vehicles.
+          </span>
+        </label>
+
+        <label className="flex items-start gap-2 cursor-pointer">
+          <Checkbox
+            checked={value.drugAlcoholAccepted}
+            onCheckedChange={(c) =>
+              onChange({ ...value, drugAlcoholAccepted: c === true })
+            }
+            className="mt-0.5"
+          />
+          <span className="text-sm">
+            I accept the{" "}
+            <a
+              href="/legal?doc=drug-alcohol-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-primary"
+            >
+              Drugs &amp; Alcohol Policy
+            </a>{" "}
+            and consent to random &amp; for-cause testing on site.
+          </span>
+        </label>
+
+        <label className="flex items-start gap-2 cursor-pointer">
+          <Checkbox
+            checked={value.workingTimeOptOut}
+            onCheckedChange={(c) =>
+              onChange({ ...value, workingTimeOptOut: c === true })
+            }
+            className="mt-0.5"
+          />
+          <span className="text-sm">
+            I voluntarily{" "}
+            <a
+              href="/legal?doc=working-time-optout"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-primary"
+            >
+              opt out of the 48-hour average weekly working limit
+            </a>{" "}
+            (Working Time Regulations 1998). I may withdraw on 3 months' notice.
+          </span>
+        </label>
+      </div>
     </div>
   );
 }
+

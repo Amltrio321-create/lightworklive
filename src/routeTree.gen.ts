@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkerRouteImport } from './routes/worker'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -26,6 +27,11 @@ const WorkerRoute = WorkerRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientRoute = ClientRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/client': typeof ClientRouteWithChildren
+  '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/client': typeof ClientRouteWithChildren
+  '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/client': typeof ClientRouteWithChildren
+  '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
   '/client/live': typeof ClientLiveRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/client'
+    | '/legal'
     | '/login'
     | '/worker'
     | '/client/live'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/client'
+    | '/legal'
     | '/login'
     | '/worker'
     | '/client/live'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/client'
+    | '/legal'
     | '/login'
     | '/worker'
     | '/client/live'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ClientRoute: typeof ClientRouteWithChildren
+  LegalRoute: typeof LegalRoute
   LoginRoute: typeof LoginRoute
   WorkerRoute: typeof WorkerRouteWithChildren
 }
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/client': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ClientRoute: ClientRouteWithChildren,
+  LegalRoute: LegalRoute,
   LoginRoute: LoginRoute,
   WorkerRoute: WorkerRouteWithChildren,
 }
