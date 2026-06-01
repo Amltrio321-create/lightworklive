@@ -9,6 +9,10 @@ export type WorkerFieldsValue = {
   utrNumber: string;
   qualifications: string[];
   drivingLicence: string;
+  agreementsAccepted: boolean;
+  vehiclePolicyAccepted: boolean;
+  drugAlcoholAccepted: boolean;
+  workingTimeOptOut: boolean;
 };
 
 // UK UTR: 10 digits, sometimes with trailing 'K'
