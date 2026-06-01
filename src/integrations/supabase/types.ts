@@ -188,11 +188,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agreements_accepted_at: string | null
+          agreements_version: string | null
           cis_rate: number
           company_address: string | null
           company_name: string | null
           created_at: string
           driving_licence: string | null
+          drug_alcohol_policy_accepted_at: string | null
           full_name: string | null
           id: string
           phone: string | null
@@ -201,14 +204,19 @@ export type Database = {
           trade: string | null
           updated_at: string
           utr_number: string | null
+          vehicle_policy_accepted_at: string | null
           worker_ref: string | null
+          working_time_optout_accepted_at: string | null
         }
         Insert: {
+          agreements_accepted_at?: string | null
+          agreements_version?: string | null
           cis_rate?: number
           company_address?: string | null
           company_name?: string | null
           created_at?: string
           driving_licence?: string | null
+          drug_alcohol_policy_accepted_at?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
@@ -217,14 +225,19 @@ export type Database = {
           trade?: string | null
           updated_at?: string
           utr_number?: string | null
+          vehicle_policy_accepted_at?: string | null
           worker_ref?: string | null
+          working_time_optout_accepted_at?: string | null
         }
         Update: {
+          agreements_accepted_at?: string | null
+          agreements_version?: string | null
           cis_rate?: number
           company_address?: string | null
           company_name?: string | null
           created_at?: string
           driving_licence?: string | null
+          drug_alcohol_policy_accepted_at?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
@@ -233,7 +246,9 @@ export type Database = {
           trade?: string | null
           updated_at?: string
           utr_number?: string | null
+          vehicle_policy_accepted_at?: string | null
           worker_ref?: string | null
+          working_time_optout_accepted_at?: string | null
         }
         Relationships: []
       }
