@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle, Send, ShieldCheck, Check, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendInvoiceEmail } from "@/lib/invoices.functions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { QUALIFICATIONS } from "@/components/auth/WorkerSignupFields";
 import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
