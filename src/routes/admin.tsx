@@ -594,12 +594,14 @@ function ShiftsTab() {
       site_id: siteId,
       scheduled_start: new Date(start).toISOString(),
       hourly_rate: rateNum,
+      required_qualifications: requiredQuals,
     });
     if (error) return toast.error(error.message);
     toast.success("Shift assigned");
     setWorkerId("");
     setSiteId("");
     setRate("");
+    setRequiredQuals([]);
     load();
   };
 
