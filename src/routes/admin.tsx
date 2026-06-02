@@ -762,6 +762,37 @@ function ShiftsTab() {
           />
           <p className="text-xs text-muted-foreground">Used for weekly CIS invoice generation.</p>
         </div>
+        <div className="space-y-2">
+          <Label>Required qualifications</Label>
+          <p className="text-xs text-muted-foreground">
+            Tick all that apply. Worker must hold a verified match to start. Leave empty to accept any verified qualification.
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto rounded-md border p-2">
+            {QUALIFICATIONS.map((q) => {
+              const checked = requiredQuals.includes(q.value);
+              return (
+                <label
+                  key={q.value}
+                  className={`flex items-center gap-2 rounded px-2 py-1 cursor-pointer text-xs ${
+                    checked ? "bg-primary/10" : "hover:bg-muted"
+                  }`}
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(c) =>
+                      setRequiredQuals((prev) =>
+                        c === true
+                          ? Array.from(new Set([...prev, q.value]))
+                          : prev.filter((x) => x !== q.value),
+                      )
+                    }
+                  />
+                  <span>{q.label}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
         <Button type="submit" className="w-full">Assign</Button>
       </form>
     </div>
