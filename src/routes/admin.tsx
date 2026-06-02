@@ -644,6 +644,22 @@ function ShiftsTab() {
                 <td className="p-3">{new Date(s.scheduled_start).toLocaleString()}</td>
                 <td className="p-3">{s.worker_name ?? "—"}</td>
                 <td className="p-3">{s.sites?.name}</td>
+                <td className="p-3">
+                  {s.required_qualifications && s.required_qualifications.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {s.required_qualifications.map((q) => (
+                        <span
+                          key={q}
+                          className="inline-block px-1.5 py-0.5 rounded bg-muted text-xs"
+                        >
+                          {QUALIFICATIONS.find((x) => x.value === q)?.label ?? q}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Any</span>
+                  )}
+                </td>
                 <td className="p-3">{s.hourly_rate != null ? `£${Number(s.hourly_rate).toFixed(2)}/hr` : "—"}</td>
                 <td className="p-3">
                   <span
