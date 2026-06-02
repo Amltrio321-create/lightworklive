@@ -51,7 +51,7 @@ function Portal() {
                 Now hiring
               </p>
               <h2 className="text-lg sm:text-xl font-bold mt-0.5">
-                Traffic Management operatives — fully qualified ops to TTMBC
+                Traffic Management operatives — TTMBC TO FULLY QUALIFIED OPS
               </h2>
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
