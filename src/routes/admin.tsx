@@ -537,6 +537,7 @@ function ShiftsTab() {
   const [workerId, setWorkerId] = useState("");
   const [siteId, setSiteId] = useState("");
   const [rate, setRate] = useState("");
+  const [requiredQuals, setRequiredQuals] = useState<string[]>([]);
   const [start, setStart] = useState(() =>
     new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
   );
