@@ -58,6 +58,7 @@ type ShiftRow = {
   started_at: string | null;
   ended_at: string | null;
   hourly_rate: number | null;
+  required_qualifications?: string[] | null;
   sites?: { name: string } | null;
   worker_name?: string | null;
 };
