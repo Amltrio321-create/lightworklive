@@ -632,6 +632,7 @@ function ShiftsTab() {
               <th className="text-left p-3">When</th>
               <th className="text-left p-3">Worker</th>
               <th className="text-left p-3">Site</th>
+              <th className="text-left p-3">Required quals</th>
               <th className="text-left p-3">Rate</th>
               <th className="text-left p-3">Status</th>
               <th className="p-3 w-24" />
