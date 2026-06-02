@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { Trash2, Square, Radar, Users, Building2, HardHat, Activity, Receipt, PlayCircle, Send, ShieldCheck, Check, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendInvoiceEmail } from "@/lib/invoices.functions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { QUALIFICATIONS } from "@/components/auth/WorkerSignupFields";
 import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -56,6 +58,7 @@ type ShiftRow = {
   started_at: string | null;
   ended_at: string | null;
   hourly_rate: number | null;
+  required_qualifications?: string[] | null;
   sites?: { name: string } | null;
   worker_name?: string | null;
 };
@@ -534,6 +537,7 @@ function ShiftsTab() {
   const [workerId, setWorkerId] = useState("");
   const [siteId, setSiteId] = useState("");
   const [rate, setRate] = useState("");
+  const [requiredQuals, setRequiredQuals] = useState<string[]>([]);
   const [start, setStart] = useState(() =>
     new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
   );
@@ -590,12 +594,14 @@ function ShiftsTab() {
       site_id: siteId,
       scheduled_start: new Date(start).toISOString(),
       hourly_rate: rateNum,
+      required_qualifications: requiredQuals,
     });
     if (error) return toast.error(error.message);
     toast.success("Shift assigned");
     setWorkerId("");
     setSiteId("");
     setRate("");
+    setRequiredQuals([]);
     load();
   };
 
@@ -626,6 +632,7 @@ function ShiftsTab() {
               <th className="text-left p-3">When</th>
               <th className="text-left p-3">Worker</th>
               <th className="text-left p-3">Site</th>
+              <th className="text-left p-3">Required quals</th>
               <th className="text-left p-3">Rate</th>
               <th className="text-left p-3">Status</th>
               <th className="p-3 w-24" />
@@ -637,6 +644,22 @@ function ShiftsTab() {
                 <td className="p-3">{new Date(s.scheduled_start).toLocaleString()}</td>
                 <td className="p-3">{s.worker_name ?? "—"}</td>
                 <td className="p-3">{s.sites?.name}</td>
+                <td className="p-3">
+                  {s.required_qualifications && s.required_qualifications.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {s.required_qualifications.map((q) => (
+                        <span
+                          key={q}
+                          className="inline-block px-1.5 py-0.5 rounded bg-muted text-xs"
+                        >
+                          {QUALIFICATIONS.find((x) => x.value === q)?.label ?? q}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Any</span>
+                  )}
+                </td>
                 <td className="p-3">{s.hourly_rate != null ? `£${Number(s.hourly_rate).toFixed(2)}/hr` : "—"}</td>
                 <td className="p-3">
                   <span
@@ -679,7 +702,7 @@ function ShiftsTab() {
             ))}
             {shifts.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                <td colSpan={7} className="p-6 text-center text-muted-foreground">
                   No shifts yet.
                 </td>
               </tr>
@@ -738,6 +761,37 @@ function ShiftsTab() {
             onChange={(e) => setRate(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">Used for weekly CIS invoice generation.</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Required qualifications</Label>
+          <p className="text-xs text-muted-foreground">
+            Tick all that apply. Worker must hold a verified match to start. Leave empty to accept any verified qualification.
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto rounded-md border p-2">
+            {QUALIFICATIONS.map((q) => {
+              const checked = requiredQuals.includes(q.value);
+              return (
+                <label
+                  key={q.value}
+                  className={`flex items-center gap-2 rounded px-2 py-1 cursor-pointer text-xs ${
+                    checked ? "bg-primary/10" : "hover:bg-muted"
+                  }`}
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(c) =>
+                      setRequiredQuals((prev) =>
+                        c === true
+                          ? Array.from(new Set([...prev, q.value]))
+                          : prev.filter((x) => x !== q.value),
+                      )
+                    }
+                  />
+                  <span>{q.label}</span>
+                </label>
+              );
+            })}
+          </div>
         </div>
         <Button type="submit" className="w-full">Assign</Button>
       </form>

@@ -259,6 +259,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           notes: string | null
+          required_qualifications: string[]
           scheduled_end: string | null
           scheduled_start: string
           site_id: string
@@ -272,6 +273,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           notes?: string | null
+          required_qualifications?: string[]
           scheduled_end?: string | null
           scheduled_start: string
           site_id: string
@@ -285,6 +287,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           notes?: string | null
+          required_qualifications?: string[]
           scheduled_end?: string | null
           scheduled_start?: string
           site_id?: string
