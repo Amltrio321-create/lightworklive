@@ -28,7 +28,7 @@ function Portal() {
       <div className="hi-vis-stripe h-3" />
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-10">
         <Link to="/" className="mb-8">
-          <img src={logo} alt="Light Work Live" className="h-40 w-auto" />
+          <img src={logo} alt="Light Work Live" className="h-20 w-auto" />
         </Link>
 
         <div className="text-center max-w-xl mb-8">

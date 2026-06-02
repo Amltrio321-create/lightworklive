@@ -167,7 +167,7 @@ function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
           <Link to="/" className="flex items-center justify-center mb-6">
-            <img src={logo} alt="Light Work Live" className="h-40 w-auto" />
+            <img src={logo} alt="Light Work Live" className="h-20 w-auto" />
           </Link>
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <Tabs defaultValue={presetRole ? "signup" : "login"}>
