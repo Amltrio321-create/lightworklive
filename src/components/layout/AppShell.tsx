@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <Link to={home} className="flex items-center gap-2 font-bold">
-            <img src={logo} alt="Light Work Live" className="h-12 w-auto" />
+            <img src={logo} alt="Light Work Live" className="h-24 w-auto" />
             {role && (
               <span className="ml-2 text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-accent text-accent-foreground">
                 {role}
