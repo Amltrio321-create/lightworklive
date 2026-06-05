@@ -17,30 +17,42 @@ export type Database = {
       invoice_items: {
         Row: {
           amount: number
+          check_status: string | null
           created_at: string
+          gps_hours: number | null
           hourly_rate: number
           hours: number
           id: string
           invoice_id: string
+          job_number: string | null
           shift_id: string
+          variance_pct: number | null
         }
         Insert: {
           amount: number
+          check_status?: string | null
           created_at?: string
+          gps_hours?: number | null
           hourly_rate: number
           hours: number
           id?: string
           invoice_id: string
+          job_number?: string | null
           shift_id: string
+          variance_pct?: number | null
         }
         Update: {
           amount?: number
+          check_status?: string | null
           created_at?: string
+          gps_hours?: number | null
           hourly_rate?: number
           hours?: number
           id?: string
           invoice_id?: string
+          job_number?: string | null
           shift_id?: string
+          variance_pct?: number | null
         }
         Relationships: [
           {
@@ -258,6 +270,7 @@ export type Database = {
           ended_at: string | null
           hourly_rate: number | null
           id: string
+          job_number: string | null
           notes: string | null
           required_qualifications: string[]
           scheduled_end: string | null
@@ -272,6 +285,7 @@ export type Database = {
           ended_at?: string | null
           hourly_rate?: number | null
           id?: string
+          job_number?: string | null
           notes?: string | null
           required_qualifications?: string[]
           scheduled_end?: string | null
@@ -286,6 +300,7 @@ export type Database = {
           ended_at?: string | null
           hourly_rate?: number | null
           id?: string
+          job_number?: string | null
           notes?: string | null
           required_qualifications?: string[]
           scheduled_end?: string | null
@@ -404,6 +419,7 @@ export type Database = {
         Args: { _period_end: string; _period_start: string }
         Returns: number
       }
+      gps_hours_for_shift: { Args: { _shift_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
