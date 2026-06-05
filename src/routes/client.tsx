@@ -175,7 +175,12 @@ function ClientPage() {
             Workers currently on your sites.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/client/invoices">
+            <Button variant="outline">
+              <Receipt className="w-4 h-4 mr-1" /> Invoices
+            </Button>
+          </Link>
           <Link to="/client/live">
             <Button>
               <Radar className="w-4 h-4 mr-1" /> Live map
