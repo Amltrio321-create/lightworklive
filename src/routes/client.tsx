@@ -229,7 +229,7 @@ function ClientPage() {
               const photo = latestPhoto[s.id];
               const photoUrl = photoUrls[s.id];
               return (
-                <article key={s.id} className="rounded-lg border bg-card overflow-hidden">
+                <article key={s.id} onClick={() => setSelectedShift(s.id)} className="rounded-lg border bg-card overflow-hidden cursor-pointer hover:border-primary transition-colors">
                   <div className="p-4 flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
