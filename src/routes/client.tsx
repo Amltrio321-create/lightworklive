@@ -348,6 +348,12 @@ function ClientPage() {
           </ul>
         )}
       </section>
+
+      <ShiftDetailsSheet
+        shiftId={selectedShift}
+        open={!!selectedShift}
+        onOpenChange={(o) => !o && setSelectedShift(null)}
+      />
     </div>
   );
 }
