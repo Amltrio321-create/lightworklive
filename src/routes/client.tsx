@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapPin, Camera, Plus, Clock, Radar } from "lucide-react";
+import { MapPin, Camera, Plus, Clock, Radar, Receipt, Hash } from "lucide-react";
 import { MapEmbed } from "@/components/MapEmbed";
+import { ShiftDetailsSheet } from "@/components/ShiftDetailsSheet";
 import { getSignedPhotoUrl } from "@/lib/photos";
 
 type Site = { id: string; name: string; address: string | null };
