@@ -316,7 +316,7 @@ function ClientPage() {
         ) : (
           <ul className="rounded-lg border bg-card divide-y">
             {scheduledShifts.map((s) => (
-              <li key={s.id} className="p-3 flex items-center justify-between">
+              <li key={s.id} onClick={() => setSelectedShift(s.id)} className="p-3 flex items-center justify-between cursor-pointer hover:bg-muted/50">
                 <div>
                   <div className="font-medium">{s.worker?.full_name ?? "Worker"} — {s.sites?.name}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
