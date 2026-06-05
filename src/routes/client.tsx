@@ -52,6 +52,7 @@ function ClientPage() {
   const [open, setOpen] = useState(false);
   const [siteName, setSiteName] = useState("");
   const [siteAddress, setSiteAddress] = useState("");
+  const [selectedShift, setSelectedShift] = useState<string | null>(null);
 
   const loadSites = useCallback(async () => {
     if (!user) return;
