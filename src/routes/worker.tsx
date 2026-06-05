@@ -190,12 +190,18 @@ function WorkerPage() {
 
   const endShift = async () => {
     if (!active) return;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("shifts")
       .update({ status: "ended", ended_at: new Date().toISOString() })
-      .eq("id", active.id);
+      .eq("id", active.id)
+      .select("job_number")
+      .single();
     if (error) return toast.error(error.message);
-    toast.success("Shift ended");
+    toast.success(
+      data?.job_number
+        ? `Shift ended — job ref ${data.job_number}`
+        : "Shift ended",
+    );
     loadShifts();
   };
 

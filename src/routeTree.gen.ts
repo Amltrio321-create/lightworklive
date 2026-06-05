@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkerQualificationsRouteImport } from './routes/worker.qualifications'
 import { Route as WorkerInvoicesRouteImport } from './routes/worker.invoices'
 import { Route as ClientLiveRouteImport } from './routes/client.live'
+import { Route as ClientInvoicesRouteImport } from './routes/client.invoices'
 
 const WorkerRoute = WorkerRouteImport.update({
   id: '/worker',
@@ -64,6 +65,11 @@ const ClientLiveRoute = ClientLiveRouteImport.update({
   path: '/live',
   getParentRoute: () => ClientRoute,
 } as any)
+const ClientInvoicesRoute = ClientInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => ClientRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
+  '/client/invoices': typeof ClientInvoicesRoute
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
   '/worker/qualifications': typeof WorkerQualificationsRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
+  '/client/invoices': typeof ClientInvoicesRoute
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
   '/worker/qualifications': typeof WorkerQualificationsRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
+  '/client/invoices': typeof ClientInvoicesRoute
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
   '/worker/qualifications': typeof WorkerQualificationsRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/worker'
+    | '/client/invoices'
     | '/client/live'
     | '/worker/invoices'
     | '/worker/qualifications'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/worker'
+    | '/client/invoices'
     | '/client/live'
     | '/worker/invoices'
     | '/worker/qualifications'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/worker'
+    | '/client/invoices'
     | '/client/live'
     | '/worker/invoices'
     | '/worker/qualifications'
@@ -209,14 +221,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientLiveRouteImport
       parentRoute: typeof ClientRoute
     }
+    '/client/invoices': {
+      id: '/client/invoices'
+      path: '/invoices'
+      fullPath: '/client/invoices'
+      preLoaderRoute: typeof ClientInvoicesRouteImport
+      parentRoute: typeof ClientRoute
+    }
   }
 }
 
 interface ClientRouteChildren {
+  ClientInvoicesRoute: typeof ClientInvoicesRoute
   ClientLiveRoute: typeof ClientLiveRoute
 }
 
 const ClientRouteChildren: ClientRouteChildren = {
+  ClientInvoicesRoute: ClientInvoicesRoute,
   ClientLiveRoute: ClientLiveRoute,
 }
 
@@ -247,13 +268,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

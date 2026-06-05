@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapPin, Camera, Plus, Clock, Radar } from "lucide-react";
+import { MapPin, Camera, Plus, Clock, Radar, Receipt, Hash } from "lucide-react";
 import { MapEmbed } from "@/components/MapEmbed";
+import { ShiftDetailsSheet } from "@/components/ShiftDetailsSheet";
 import { getSignedPhotoUrl } from "@/lib/photos";
 
 type Site = { id: string; name: string; address: string | null };
@@ -51,6 +52,7 @@ function ClientPage() {
   const [open, setOpen] = useState(false);
   const [siteName, setSiteName] = useState("");
   const [siteAddress, setSiteAddress] = useState("");
+  const [selectedShift, setSelectedShift] = useState<string | null>(null);
 
   const loadSites = useCallback(async () => {
     if (!user) return;
@@ -173,7 +175,12 @@ function ClientPage() {
             Workers currently on your sites.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/client/invoices">
+            <Button variant="outline">
+              <Receipt className="w-4 h-4 mr-1" /> Invoices
+            </Button>
+          </Link>
           <Link to="/client/live">
             <Button>
               <Radar className="w-4 h-4 mr-1" /> Live map
@@ -222,7 +229,7 @@ function ClientPage() {
               const photo = latestPhoto[s.id];
               const photoUrl = photoUrls[s.id];
               return (
-                <article key={s.id} className="rounded-lg border bg-card overflow-hidden">
+                <article key={s.id} onClick={() => setSelectedShift(s.id)} className="rounded-lg border bg-card overflow-hidden cursor-pointer hover:border-primary transition-colors">
                   <div className="p-4 flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -309,7 +316,7 @@ function ClientPage() {
         ) : (
           <ul className="rounded-lg border bg-card divide-y">
             {scheduledShifts.map((s) => (
-              <li key={s.id} className="p-3 flex items-center justify-between">
+              <li key={s.id} onClick={() => setSelectedShift(s.id)} className="p-3 flex items-center justify-between cursor-pointer hover:bg-muted/50">
                 <div>
                   <div className="font-medium">{s.worker?.full_name ?? "Worker"} — {s.sites?.name}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -341,6 +348,12 @@ function ClientPage() {
           </ul>
         )}
       </section>
+
+      <ShiftDetailsSheet
+        shiftId={selectedShift}
+        open={!!selectedShift}
+        onOpenChange={(o) => !o && setSelectedShift(null)}
+      />
     </div>
   );
 }
