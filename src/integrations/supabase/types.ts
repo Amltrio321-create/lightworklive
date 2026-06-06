@@ -26,6 +26,7 @@ export type Database = {
           invoice_id: string
           job_number: string | null
           shift_id: string
+          tenant_id: string
           variance_pct: number | null
         }
         Insert: {
@@ -39,6 +40,7 @@ export type Database = {
           invoice_id: string
           job_number?: string | null
           shift_id: string
+          tenant_id: string
           variance_pct?: number | null
         }
         Update: {
@@ -52,6 +54,7 @@ export type Database = {
           invoice_id?: string
           job_number?: string | null
           shift_id?: string
+          tenant_id?: string
           variance_pct?: number | null
         }
         Relationships: [
@@ -69,6 +72,13 @@ export type Database = {
             referencedRelation: "shifts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "invoice_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       invoices: {
@@ -84,6 +94,7 @@ export type Database = {
           period_start: string
           sent_at: string | null
           status: string
+          tenant_id: string
           total_hours: number
           worker_id: string
         }
@@ -99,6 +110,7 @@ export type Database = {
           period_start: string
           sent_at?: string | null
           status?: string
+          tenant_id: string
           total_hours?: number
           worker_id: string
         }
@@ -114,10 +126,19 @@ export type Database = {
           period_start?: string
           sent_at?: string | null
           status?: string
+          tenant_id?: string
           total_hours?: number
           worker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       location_pings: {
         Row: {
@@ -127,6 +148,7 @@ export type Database = {
           longitude: number
           recorded_at: string
           shift_id: string
+          tenant_id: string
           worker_id: string
         }
         Insert: {
@@ -136,6 +158,7 @@ export type Database = {
           longitude: number
           recorded_at?: string
           shift_id: string
+          tenant_id: string
           worker_id: string
         }
         Update: {
@@ -145,6 +168,7 @@ export type Database = {
           longitude?: number
           recorded_at?: string
           shift_id?: string
+          tenant_id?: string
           worker_id?: string
         }
         Relationships: [
@@ -153,6 +177,13 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "location_pings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -166,6 +197,7 @@ export type Database = {
           photo_path: string
           shift_id: string
           taken_at: string
+          tenant_id: string
           worker_id: string
         }
         Insert: {
@@ -176,6 +208,7 @@ export type Database = {
           photo_path: string
           shift_id: string
           taken_at?: string
+          tenant_id: string
           worker_id: string
         }
         Update: {
@@ -186,6 +219,7 @@ export type Database = {
           photo_path?: string
           shift_id?: string
           taken_at?: string
+          tenant_id?: string
           worker_id?: string
         }
         Relationships: [
@@ -194,6 +228,13 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_updates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -213,6 +254,7 @@ export type Database = {
           phone: string | null
           qualifications: string[]
           right_to_work: boolean
+          tenant_id: string
           trade: string | null
           updated_at: string
           utr_number: string | null
@@ -234,6 +276,7 @@ export type Database = {
           phone?: string | null
           qualifications?: string[]
           right_to_work?: boolean
+          tenant_id: string
           trade?: string | null
           updated_at?: string
           utr_number?: string | null
@@ -255,6 +298,7 @@ export type Database = {
           phone?: string | null
           qualifications?: string[]
           right_to_work?: boolean
+          tenant_id?: string
           trade?: string | null
           updated_at?: string
           utr_number?: string | null
@@ -262,7 +306,15 @@ export type Database = {
           worker_ref?: string | null
           working_time_optout_accepted_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shifts: {
         Row: {
@@ -278,6 +330,7 @@ export type Database = {
           site_id: string
           started_at: string | null
           status: Database["public"]["Enums"]["shift_status"]
+          tenant_id: string
           worker_id: string
         }
         Insert: {
@@ -293,6 +346,7 @@ export type Database = {
           site_id: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["shift_status"]
+          tenant_id: string
           worker_id: string
         }
         Update: {
@@ -308,6 +362,7 @@ export type Database = {
           site_id?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["shift_status"]
+          tenant_id?: string
           worker_id?: string
         }
         Relationships: [
@@ -316,6 +371,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shifts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -329,6 +391,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
+          tenant_id: string
         }
         Insert: {
           address?: string | null
@@ -338,6 +401,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
+          tenant_id: string
         }
         Update: {
           address?: string | null
@@ -347,6 +411,80 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_members: {
+        Row: {
+          created_at: string
+          id: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          accent_color: string
+          contact_email: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          primary_color: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          primary_color?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -379,6 +517,7 @@ export type Database = {
           photo_path: string
           qualification: string
           status: Database["public"]["Enums"]["qualification_status"]
+          tenant_id: string
           updated_at: string
           verified_at: string | null
           verified_by: string | null
@@ -391,6 +530,7 @@ export type Database = {
           photo_path: string
           qualification: string
           status?: Database["public"]["Enums"]["qualification_status"]
+          tenant_id: string
           updated_at?: string
           verified_at?: string | null
           verified_by?: string | null
@@ -403,18 +543,28 @@ export type Database = {
           photo_path?: string
           qualification?: string
           status?: Database["public"]["Enums"]["qualification_status"]
+          tenant_id?: string
           updated_at?: string
           verified_at?: string | null
           verified_by?: string | null
           worker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "worker_qualifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      current_tenant_id: { Args: never; Returns: string }
       generate_weekly_invoices: {
         Args: { _period_end: string; _period_start: string }
         Returns: number
@@ -429,7 +579,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "worker" | "client"
+      app_role: "admin" | "worker" | "client" | "super_admin"
       qualification_status: "pending" | "verified" | "rejected"
       shift_status: "scheduled" | "active" | "ended"
     }
@@ -559,7 +709,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "worker", "client"],
+      app_role: ["admin", "worker", "client", "super_admin"],
       qualification_status: ["pending", "verified", "rejected"],
       shift_status: ["scheduled", "active", "ended"],
     },
