@@ -19,6 +19,7 @@ import { Route as WorkerQualificationsRouteImport } from './routes/worker.qualif
 import { Route as WorkerInvoicesRouteImport } from './routes/worker.invoices'
 import { Route as ClientLiveRouteImport } from './routes/client.live'
 import { Route as ClientInvoicesRouteImport } from './routes/client.invoices'
+import { Route as AdminBrandingRouteImport } from './routes/admin.branding'
 
 const WorkerRoute = WorkerRouteImport.update({
   id: '/worker',
@@ -70,14 +71,20 @@ const ClientInvoicesRoute = ClientInvoicesRouteImport.update({
   path: '/invoices',
   getParentRoute: () => ClientRoute,
 } as any)
+const AdminBrandingRoute = AdminBrandingRouteImport.update({
+  id: '/branding',
+  path: '/branding',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/client': typeof ClientRouteWithChildren
   '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
+  '/admin/branding': typeof AdminBrandingRoute
   '/client/invoices': typeof ClientInvoicesRoute
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
@@ -85,11 +92,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/client': typeof ClientRouteWithChildren
   '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
+  '/admin/branding': typeof AdminBrandingRoute
   '/client/invoices': typeof ClientInvoicesRoute
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
@@ -98,11 +106,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/client': typeof ClientRouteWithChildren
   '/legal': typeof LegalRoute
   '/login': typeof LoginRoute
   '/worker': typeof WorkerRouteWithChildren
+  '/admin/branding': typeof AdminBrandingRoute
   '/client/invoices': typeof ClientInvoicesRoute
   '/client/live': typeof ClientLiveRoute
   '/worker/invoices': typeof WorkerInvoicesRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/worker'
+    | '/admin/branding'
     | '/client/invoices'
     | '/client/live'
     | '/worker/invoices'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/worker'
+    | '/admin/branding'
     | '/client/invoices'
     | '/client/live'
     | '/worker/invoices'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/legal'
     | '/login'
     | '/worker'
+    | '/admin/branding'
     | '/client/invoices'
     | '/client/live'
     | '/worker/invoices'
@@ -149,7 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ClientRoute: typeof ClientRouteWithChildren
   LegalRoute: typeof LegalRoute
   LoginRoute: typeof LoginRoute
@@ -228,8 +240,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientInvoicesRouteImport
       parentRoute: typeof ClientRoute
     }
+    '/admin/branding': {
+      id: '/admin/branding'
+      path: '/branding'
+      fullPath: '/admin/branding'
+      preLoaderRoute: typeof AdminBrandingRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminBrandingRoute: typeof AdminBrandingRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminBrandingRoute: AdminBrandingRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ClientRouteChildren {
   ClientInvoicesRoute: typeof ClientInvoicesRoute
@@ -259,7 +288,7 @@ const WorkerRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ClientRoute: ClientRouteWithChildren,
   LegalRoute: LegalRoute,
   LoginRoute: LoginRoute,
@@ -268,13 +297,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

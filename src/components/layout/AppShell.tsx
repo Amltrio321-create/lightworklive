@@ -1,12 +1,14 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import logo from "@/assets/logo.png";
+import defaultLogo from "@/assets/logo.png";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, role, signOut } = useAuth();
+  const { tenant, logoSrc } = useTenant();
   const nav = useNavigate();
 
   const home = role === "admin" ? "/admin" : role === "client" ? "/client" : "/worker";
@@ -17,7 +19,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <Link to={home} className="flex items-center gap-2 font-bold">
-            <img src={logo} alt="Light Work Live" className="h-12 w-auto" />
+            <img src={logoSrc ?? defaultLogo} alt={tenant?.name ?? "Light Work Live"} className="h-12 w-auto object-contain" />
+            {tenant && <span className="hidden md:inline text-base">{tenant.name}</span>}
             {role && (
               <span className="ml-2 text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-accent text-accent-foreground">
                 {role}

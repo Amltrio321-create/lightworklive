@@ -1,59 +1,64 @@
-This is a large batch. I'll deliver in the order you picked, but flag up front that **full multi-tenancy** is a major change — it touches every table, every RLS policy, and signup/onboarding. I'll do it last and keep it backwards compatible so existing data keeps working.
+# Multi-Tenant White-Label
 
-## 1. Shift details drawer
+Turn the app into a multi-tenant platform where each tenant (company) has isolated data, users, and branding (logo, name, colours). One "Light Work Live" tenant becomes the default; existing data is backfilled to it.
 
-- Make each shift card on `/client` clickable (active + scheduled).
-- New `<ShiftDetailsSheet>` (right-side sheet) showing:
-  - Worker name, phone, qualifications
-  - Site name + address, scheduled vs actual times, job number
-  - Latest photo (large) + caption + timestamp
-  - GPS history: small map with full polyline of pings + last-seen time + distance from site
-  - Hours on site (computed from first/last ping)
-- Reused on `/admin` and `/client/live` so the same drawer works everywhere.
+## 1. Database (single migration)
 
-## 2. Client invoices view + GPS verification
+**New tables**
+- `tenants` — `id`, `name`, `slug` (unique), `logo_url`, `primary_color`, `accent_color`, `contact_email`.
+- `tenant_members` — `tenant_id`, `user_id`, unique pair. Decides which tenant a user belongs to (workers/clients/admins all use this).
 
-- New route `/client/invoices` — lists invoices for shifts at the client's sites (read-only).
-- Per invoice line: claimed hours, **GPS-verified hours**, variance %, status pill (OK / Warning if >10% diff / Missing GPS).
-- Server fn `getClientInvoices` (admin client, scoped by site ownership) returns aggregated data.
-- Add nav link in `AppShell` for clients.
+**Role change**
+- Add `super_admin` to `app_role` enum. `super_admin` sees/manages all tenants. `admin` is scoped to their own tenant via `tenant_members`.
 
-### GPS hours calc
+**Tenant scoping**
+- Add `tenant_id uuid not null` to: `profiles`, `sites`, `shifts`, `location_pings`, `photo_updates`, `worker_qualifications`, `invoices`, `invoice_items`.
+- Seed a default tenant ("Light Work Live") and backfill every existing row to it. Then enforce NOT NULL.
 
-A SQL helper `gps_hours_for_shift(shift_id)` → returns hours between first and last ping for that shift (gap-tolerant: splits on >20 min gaps). Used by both the invoice view and admin generation.
+**Security-definer helpers** (in `private` schema)
+- `current_tenant_id()` — returns the caller's `tenant_id` from `tenant_members`.
+- `is_super_admin()` — wraps `has_role(auth.uid(), 'super_admin')`.
 
-## 3. Job numbers + auto-invoice checks
+**RLS rewrite**
+- Every existing policy gets an extra `tenant_id = private.current_tenant_id()` clause (super_admin bypasses).
+- `tenants`: super_admin manages all; members read their own row; admins update their own tenant's branding.
+- `tenant_members`: super_admin manages; users read own row.
 
-- Add `job_number` column to `shifts` (text, unique). Format `JOB-YYYYMMDD-<6char>`.
-- DB trigger: when `shifts.status` flips to `ended`, auto-assign `job_number` if null.
-- `invoice_items` gets `job_number`, `gps_hours`, `variance_pct`, `check_status` ('ok' | 'warning' | 'missing_gps').
-- Rework `generate_weekly_invoices` to populate the new fields and run checks (warn-only).
-- Worker "End shift" UI shows the assigned job number on completion.
+**Storage**
+- New public bucket `tenant-branding` for logo uploads. RLS: tenant admins write to `{tenant_id}/...`; everyone reads.
 
-## 4. White-label multi-tenant (biggest piece)
+## 2. App-level theming
 
-New `tenants` table (id, name, slug, logo_url, primary_color, accent_color, contact_email, created_at). Every existing data table gets `tenant_id uuid not null`. Backfill existing rows into a default "Light Work Live" tenant.
+- New `<TenantThemeProvider>` in `__root.tsx` — fetches current tenant on auth, injects `--primary` / `--accent` / logo URL / name into CSS variables and React context.
+- `AppShell` reads tenant logo + name from context instead of the static `logo.png` import.
+- `<head>` title updates to `{tenantName} — Workforce`.
 
-- New role `super_admin` (you) — can see/manage all tenants.
-- `admin` role is now scoped to a single tenant.
-- All RLS policies rewritten to add `tenant_id = current_tenant()` check via a `current_tenant()` security-definer function reading from `user_roles.tenant_id`.
-- Signup gets a tenant slug (or picks via subdomain-style query param `?t=acme`); users belong to one tenant.
-- New `/admin/branding` page: logo upload (storage bucket `tenant-branding`), name, primary/accent colour pickers → writes CSS variables at runtime via a `<TenantThemeProvider>` in `__root.tsx`.
-- New `/super-admin/tenants` page for you to create/edit tenants.
+## 3. New routes / pages
 
-### Data migration risk
+- `/admin/branding` (tenant admin) — upload logo, edit name + colour pickers, live preview.
+- `/super-admin` (super_admin only) — list tenants, create tenant, assign users, switch impersonation.
+- Existing admin pages get a small "Tenant: X" badge in the header.
 
-Backfilling `tenant_id` on `sites`, `shifts`, `invoices`, `profiles`, `user_roles`, `location_pings`, `photo_updates`, `invoice_items`, `worker_qualifications` is irreversible. I'll bundle it into a single migration with a default tenant so nothing breaks. All existing Amphibious TM data stays put under that tenant.
+## 4. Sign-up flow
+
+- Sign-up gains a tenant slug field (e.g. `?tenant=acme` query param or dropdown of public tenants). New users are inserted into `tenant_members` for that tenant automatically by a trigger on `auth.users` → `profiles`.
+- Super-admins can move users between tenants from `/super-admin`.
+
+## 5. Risks & order
+
+This is the biggest change to the DB so far — adding NOT NULL `tenant_id` to 8 tables and rewriting ~25 RLS policies. Backfill is irreversible.
+
+Order:
+1. Migration (tables + backfill + RLS rewrite).
+2. Types regen + theme provider + AppShell.
+3. Branding page.
+4. Super-admin page + sign-up flow.
 
 ## Technical notes
 
-- New tables: `tenants`, plus `tenant_id` on 9 existing tables.
-- New migrations: ~3 (job numbers + trigger; tenants + backfill + RLS rewrite; invoice check columns).
-- New routes: `/client/invoices`, `/admin/branding`, `/super-admin/tenants`.
-- New components: `ShiftDetailsSheet`, `TenantThemeProvider`, `BrandingForm`.
-- New server fns: `getClientInvoices`, `getShiftDetails`, `updateTenantBranding`, `createTenant`.
-- Reuses existing `MapEmbed` (extended to accept a polyline of points).
+- `current_tenant_id()` is `STABLE SECURITY DEFINER` to avoid RLS recursion on `tenant_members`.
+- Bucket name `tenant-branding`, max 2MB, image/png|jpeg|svg+xml.
+- CSS vars written as `oklch()` from a hex→oklch helper on save (keeps the design-token contract).
+- Default tenant slug: `lightworklive`. All existing users mapped to it.
 
-## Suggested order of approval
-
-I can ship 1–3 in one pass (~1 batch of edits + 2 migrations), then do **4 multi-tenant separately** because it rewrites RLS across the whole DB and is the most likely place to introduce regressions. Want me to proceed with 1–3 now and tackle 4 in the next turn?
+Approve and I'll start with the migration.
