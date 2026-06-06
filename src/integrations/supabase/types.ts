@@ -40,7 +40,7 @@ export type Database = {
           invoice_id: string
           job_number?: string | null
           shift_id: string
-          tenant_id: string
+          tenant_id?: string
           variance_pct?: number | null
         }
         Update: {
@@ -110,7 +110,7 @@ export type Database = {
           period_start: string
           sent_at?: string | null
           status?: string
-          tenant_id: string
+          tenant_id?: string
           total_hours?: number
           worker_id: string
         }
@@ -158,7 +158,7 @@ export type Database = {
           longitude: number
           recorded_at?: string
           shift_id: string
-          tenant_id: string
+          tenant_id?: string
           worker_id: string
         }
         Update: {
@@ -208,7 +208,7 @@ export type Database = {
           photo_path: string
           shift_id: string
           taken_at?: string
-          tenant_id: string
+          tenant_id?: string
           worker_id: string
         }
         Update: {
@@ -276,7 +276,7 @@ export type Database = {
           phone?: string | null
           qualifications?: string[]
           right_to_work?: boolean
-          tenant_id: string
+          tenant_id?: string
           trade?: string | null
           updated_at?: string
           utr_number?: string | null
@@ -346,7 +346,7 @@ export type Database = {
           site_id: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["shift_status"]
-          tenant_id: string
+          tenant_id?: string
           worker_id: string
         }
         Update: {
@@ -401,7 +401,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           address?: string | null
@@ -530,7 +530,7 @@ export type Database = {
           photo_path: string
           qualification: string
           status?: Database["public"]["Enums"]["qualification_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           verified_at?: string | null
           verified_by?: string | null
