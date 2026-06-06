@@ -66,10 +66,17 @@ type ShiftRow = {
 function AdminPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold">Admin console</h1>
-      <p className="text-sm text-muted-foreground">
-        Full visibility — manage users, sites and shift assignments.
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold">Admin console</h1>
+          <p className="text-sm text-muted-foreground">
+            Full visibility — manage users, sites and shift assignments.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/admin/branding">Branding</Link>
+        </Button>
+      </div>
 
       <Tabs defaultValue="overview" className="mt-6">
         <TabsList className="flex flex-wrap h-auto">
