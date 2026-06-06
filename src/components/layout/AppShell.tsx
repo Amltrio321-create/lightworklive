@@ -1,12 +1,14 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import logo from "@/assets/logo.png";
+import defaultLogo from "@/assets/logo.png";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, role, signOut } = useAuth();
+  const { tenant, logoSrc } = useTenant();
   const nav = useNavigate();
 
   const home = role === "admin" ? "/admin" : role === "client" ? "/client" : "/worker";
