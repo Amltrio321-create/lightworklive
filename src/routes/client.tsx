@@ -357,6 +357,13 @@ function ClientPage() {
         )}
       </section>
 
+      <section>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+          <Users className="w-4 h-4" /> Your operatives
+        </h2>
+        <ClientOperativesList />
+      </section>
+
       <ShiftDetailsSheet
         shiftId={selectedShift}
         open={!!selectedShift}
