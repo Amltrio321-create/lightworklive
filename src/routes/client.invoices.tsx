@@ -4,7 +4,8 @@ import { RequireRole } from "@/components/auth/RequireRole";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Receipt, AlertTriangle, CheckCircle2, HelpCircle } from "lucide-react";
+import { ArrowLeft, Receipt, AlertTriangle, CheckCircle2, HelpCircle, ThumbsUp, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/client/invoices")({
   component: () => (
@@ -25,6 +26,7 @@ type InvoiceItem = {
   gps_hours: number | null;
   variance_pct: number | null;
   check_status: string | null;
+  client_approval: string | null;
   shifts: {
     id: string;
     started_at: string | null;
