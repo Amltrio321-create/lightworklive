@@ -184,8 +184,12 @@ function ClientInvoicesPage() {
                         {it.variance_pct !== null ? `${Number(it.variance_pct).toFixed(1)}%` : "—"}
                       </div>
                     </div>
-                    <div className="col-span-12 sm:col-span-2 flex justify-end">
+                    <div className="col-span-12 sm:col-span-2 flex flex-col items-end gap-1.5">
                       <StatusPill status={it.check_status} />
+                      <ApprovalControls
+                        approval={it.client_approval}
+                        onChange={(a) => setApproval(it.id, a)}
+                      />
                     </div>
                   </div>
                 ))}
@@ -217,5 +221,52 @@ function StatusPill({ status }: { status: string | null }) {
     <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-success/10 text-success">
       <CheckCircle2 className="w-3 h-3" /> Verified
     </span>
+  );
+}
+
+function ApprovalControls({
+  approval,
+  onChange,
+}: {
+  approval: string | null;
+  onChange: (a: "approved" | "rejected" | "pending") => void;
+}) {
+  if (approval === "approved") {
+    return (
+      <button
+        onClick={() => onChange("pending")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-success text-success-foreground hover:opacity-80"
+        title="Click to reset"
+      >
+        <ThumbsUp className="w-3 h-3" /> Approved
+      </button>
+    );
+  }
+  if (approval === "rejected") {
+    return (
+      <button
+        onClick={() => onChange("pending")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-destructive text-destructive-foreground hover:opacity-80"
+        title="Click to reset"
+      >
+        <ThumbsDown className="w-3 h-3" /> Rejected
+      </button>
+    );
+  }
+  return (
+    <div className="flex gap-1">
+      <button
+        onClick={() => onChange("approved")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border border-success text-success hover:bg-success/10"
+      >
+        <ThumbsUp className="w-3 h-3" /> Approve
+      </button>
+      <button
+        onClick={() => onChange("rejected")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border border-destructive text-destructive hover:bg-destructive/10"
+      >
+        <ThumbsDown className="w-3 h-3" /> Reject
+      </button>
+    </div>
   );
 }
