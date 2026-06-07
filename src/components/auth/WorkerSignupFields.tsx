@@ -13,6 +13,7 @@ export type WorkerFieldsValue = {
   vehiclePolicyAccepted: boolean;
   drugAlcoholAccepted: boolean;
   workingTimeOptOut: boolean;
+  clientCode: string;
 };
 
 // UK UTR: 10 digits, sometimes with trailing 'K'
