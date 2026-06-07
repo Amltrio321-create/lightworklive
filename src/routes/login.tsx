@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { HardHat, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import {
@@ -17,6 +17,7 @@ import {
   ClientSignupFields,
   ClientFieldsValue,
 } from "@/components/auth/ClientSignupFields";
+import { COPYRIGHT } from "@/lib/legal";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -54,6 +55,7 @@ function LoginPage() {
     vehiclePolicyAccepted: false,
     drugAlcoholAccepted: false,
     workingTimeOptOut: false,
+    clientCode: "",
   });
   const [client, setClient] = useState<ClientFieldsValue>({
     companyName: "",
@@ -84,8 +86,9 @@ function LoginPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Role-specific validation
     if (sRole === "worker") {
+      if (!/^\d{4}$/.test(worker.clientCode))
+        return toast.error("Enter the 4-digit Client ID you were given");
       if (!worker.trade) return toast.error("Please select your trade");
       if (!worker.rightToWork)
         return toast.error("Please confirm your right to work");
@@ -115,6 +118,7 @@ function LoginPage() {
       role: sRole,
     };
     if (sRole === "worker") {
+      metadata.client_code = worker.clientCode;
       metadata.worker_ref = worker.workerRef;
       metadata.trade = worker.trade;
       metadata.right_to_work = worker.rightToWork;
@@ -145,7 +149,6 @@ function LoginPage() {
       return toast.error(error.message);
     }
 
-    // For client signup, create the first site if we have a session
     if (sRole === "client" && data.session && client.siteName.trim()) {
       const { error: siteErr } = await supabase.from("sites").insert({
         client_id: data.session.user.id,
@@ -164,11 +167,16 @@ function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="hi-vis-stripe h-2" />
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center justify-center mb-6">
-            <img src={logo} alt="Light Work Live" className="h-20 w-auto" />
+          <Link to="/" className="flex flex-col items-center justify-center mb-8">
+            <img
+              src={logo}
+              alt="Light Work Live"
+              className="h-40 sm:h-48 w-auto drop-shadow-lg"
+            />
           </Link>
+
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <Tabs defaultValue={presetRole ? "signup" : "login"}>
               <TabsList className="grid grid-cols-2 w-full">
@@ -195,15 +203,35 @@ function LoginPage() {
               <TabsContent value="signup" className="mt-6">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label>I am a…</Label>
-                    <RadioGroup value={sRole} onValueChange={(v) => setSRole(v as AppRole)} className="grid grid-cols-2 gap-2">
-                      <label className="flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
-                        <RadioGroupItem value="worker" /> Worker
-                      </label>
-                      <label className="flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
-                        <RadioGroupItem value="client" /> Client
-                      </label>
-                    </RadioGroup>
+                    <Label>I am signing up as</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSRole("worker")}
+                        className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                          sRole === "worker"
+                            ? "border-primary bg-primary/10"
+                            : "border-input bg-background hover:border-muted-foreground"
+                        }`}
+                      >
+                        <HardHat className={`w-8 h-8 ${sRole === "worker" ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="font-semibold">Operatives</span>
+                        <span className="text-xs text-muted-foreground text-center">Workers on site</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSRole("client")}
+                        className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                          sRole === "client"
+                            ? "border-primary bg-primary/10"
+                            : "border-input bg-background hover:border-muted-foreground"
+                        }`}
+                      >
+                        <Building2 className={`w-8 h-8 ${sRole === "client" ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="font-semibold">Clients</span>
+                        <span className="text-xs text-muted-foreground text-center">Companies hiring</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -242,6 +270,11 @@ function LoginPage() {
           </p>
         </div>
       </div>
+      <footer className="border-t bg-card">
+        <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-center text-muted-foreground">
+          {COPYRIGHT}
+        </div>
+      </footer>
       <div className="hi-vis-stripe h-2" />
     </div>
   );

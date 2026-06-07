@@ -15,14 +15,14 @@ export type Tenant = {
 type TenantCtx = {
   tenant: Tenant | null;
   logoSrc: string | null;
+  brandName: string | null;
+  clientCode: string | null;
   loading: boolean;
   refresh: () => Promise<void>;
 };
 
 const Ctx = createContext<TenantCtx | undefined>(undefined);
 
-// Convert hex (#rrggbb) → oklch string for CSS variables.
-// Simple sRGB → OKLab → OKLCH conversion.
 function hexToOklch(hex: string): string {
   const m = hex.replace("#", "");
   if (m.length !== 6) return "oklch(0.7 0.2 60)";
@@ -47,41 +47,76 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  const [brandName, setBrandName] = useState<string | null>(null);
+  const [clientCode, setClientCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!user) {
       setTenant(null);
       setLogoSrc(null);
+      setBrandName(null);
+      setClientCode(null);
       setLoading(false);
       return;
     }
     setLoading(true);
+
+    // Tenant
     const { data: mem } = await supabase
       .from("tenant_members")
       .select("tenant_id")
       .eq("user_id", user.id)
       .maybeSingle();
-    if (!mem) {
-      setTenant(null);
-      setLogoSrc(null);
-      setLoading(false);
-      return;
+    let t: Tenant | null = null;
+    if (mem) {
+      const { data } = await supabase
+        .from("tenants")
+        .select("id,name,slug,logo_url,primary_color,accent_color,contact_email")
+        .eq("id", mem.tenant_id)
+        .maybeSingle();
+      t = data ?? null;
     }
-    const { data: t } = await supabase
-      .from("tenants")
-      .select("id,name,slug,logo_url,primary_color,accent_color,contact_email")
-      .eq("id", mem.tenant_id)
+    setTenant(t);
+
+    // Per-user profile (for client_logo / linked client)
+    const { data: myProfile } = await supabase
+      .from("profiles")
+      .select("client_code, client_logo_url, client_id, company_name")
+      .eq("id", user.id)
       .maybeSingle();
-    setTenant(t ?? null);
-    if (t?.logo_url) {
+
+    setClientCode(myProfile?.client_code ?? null);
+
+    // Resolve effective branding: own (client) → linked client (worker) → tenant
+    let effectiveLogoPath: string | null = null;
+    let effectiveBrandName: string | null = t?.name ?? null;
+
+    if (myProfile?.client_logo_url) {
+      effectiveLogoPath = myProfile.client_logo_url;
+      effectiveBrandName = myProfile.company_name ?? effectiveBrandName;
+    } else if (myProfile?.client_id) {
+      const { data: linked } = await supabase
+        .from("profiles")
+        .select("client_logo_url, company_name")
+        .eq("id", myProfile.client_id)
+        .maybeSingle();
+      if (linked?.client_logo_url) effectiveLogoPath = linked.client_logo_url;
+      if (linked?.company_name) effectiveBrandName = linked.company_name;
+    }
+
+    if (!effectiveLogoPath && t?.logo_url) effectiveLogoPath = t.logo_url;
+
+    if (effectiveLogoPath) {
       const { data: signed } = await supabase.storage
         .from("tenant-branding")
-        .createSignedUrl(t.logo_url, 3600);
+        .createSignedUrl(effectiveLogoPath, 3600);
       setLogoSrc(signed?.signedUrl ?? null);
     } else {
       setLogoSrc(null);
     }
+
+    setBrandName(effectiveBrandName);
     setLoading(false);
   }, [user]);
 
@@ -89,7 +124,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     load();
   }, [load]);
 
-  // Inject CSS vars
   useEffect(() => {
     if (!tenant) return;
     const root = document.documentElement;
@@ -99,7 +133,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }, [tenant]);
 
   return (
-    <Ctx.Provider value={{ tenant, logoSrc, loading, refresh: load }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ tenant, logoSrc, brandName, clientCode, loading, refresh: load }}>
+      {children}
+    </Ctx.Provider>
   );
 }
 

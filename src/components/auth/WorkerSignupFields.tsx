@@ -13,6 +13,7 @@ export type WorkerFieldsValue = {
   vehiclePolicyAccepted: boolean;
   drugAlcoholAccepted: boolean;
   workingTimeOptOut: boolean;
+  clientCode: string;
 };
 
 // UK UTR: 10 digits, sometimes with trailing 'K'
@@ -75,6 +76,23 @@ export function WorkerSignupFields({
 
   return (
     <div className="space-y-4 rounded-md border bg-muted/30 p-4">
+      <div className="space-y-2">
+        <Label htmlFor="clientCode">Client ID (4-digit code from your client)</Label>
+        <Input
+          id="clientCode"
+          required
+          inputMode="numeric"
+          maxLength={4}
+          pattern="\d{4}"
+          value={value.clientCode}
+          onChange={(e) => onChange({ ...value, clientCode: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+          placeholder="e.g. 4827"
+          className="font-mono text-lg tracking-widest"
+        />
+        <p className="text-xs text-muted-foreground">
+          Ask the client you'll be working for — they were given this 4-digit code when they signed up.
+        </p>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="workerRef">Worker ID / CSCS card (optional)</Label>
         <Input

@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           amount: number
           check_status: string | null
+          client_approval: string
           created_at: string
           gps_hours: number | null
           hourly_rate: number
@@ -32,6 +33,7 @@ export type Database = {
         Insert: {
           amount: number
           check_status?: string | null
+          client_approval?: string
           created_at?: string
           gps_hours?: number | null
           hourly_rate: number
@@ -46,6 +48,7 @@ export type Database = {
         Update: {
           amount?: number
           check_status?: string | null
+          client_approval?: string
           created_at?: string
           gps_hours?: number | null
           hourly_rate?: number
@@ -244,6 +247,9 @@ export type Database = {
           agreements_accepted_at: string | null
           agreements_version: string | null
           cis_rate: number
+          client_code: string | null
+          client_id: string | null
+          client_logo_url: string | null
           company_address: string | null
           company_name: string | null
           created_at: string
@@ -266,6 +272,9 @@ export type Database = {
           agreements_accepted_at?: string | null
           agreements_version?: string | null
           cis_rate?: number
+          client_code?: string | null
+          client_id?: string | null
+          client_logo_url?: string | null
           company_address?: string | null
           company_name?: string | null
           created_at?: string
@@ -288,6 +297,9 @@ export type Database = {
           agreements_accepted_at?: string | null
           agreements_version?: string | null
           cis_rate?: number
+          client_code?: string | null
+          client_id?: string | null
+          client_logo_url?: string | null
           company_address?: string | null
           company_name?: string | null
           created_at?: string

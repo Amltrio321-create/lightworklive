@@ -8,10 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapPin, Camera, Plus, Clock, Radar, Receipt, Hash } from "lucide-react";
+import { MapPin, Camera, Plus, Clock, Radar, Receipt, Hash, Users } from "lucide-react";
 import { MapEmbed } from "@/components/MapEmbed";
 import { ShiftDetailsSheet } from "@/components/ShiftDetailsSheet";
 import { getSignedPhotoUrl } from "@/lib/photos";
+import {
+  ClientBrandingCard,
+  ClientCreateShiftDialog,
+  ClientOperativesList,
+} from "@/components/ClientControls";
 
 type Site = { id: string; name: string; address: string | null };
 type Shift = {
@@ -182,7 +187,7 @@ function ClientPage() {
             </Button>
           </Link>
           <Link to="/client/live">
-            <Button>
+            <Button variant="outline">
               <Radar className="w-4 h-4 mr-1" /> Live map
             </Button>
           </Link>
@@ -192,27 +197,30 @@ function ClientPage() {
                 <Plus className="w-4 h-4 mr-1" /> Add site
               </Button>
             </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add a site</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={createSite} className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="sn">Site name</Label>
-                <Input id="sn" required value={siteName} onChange={(e) => setSiteName(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="sa">Address</Label>
-                <Input id="sa" value={siteAddress} onChange={(e) => setSiteAddress(e.target.value)} />
-              </div>
-              <DialogFooter>
-                <Button type="submit">Create</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add a site</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={createSite} className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="sn">Site name</Label>
+                  <Input id="sn" required value={siteName} onChange={(e) => setSiteName(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="sa">Address</Label>
+                  <Input id="sa" value={siteAddress} onChange={(e) => setSiteAddress(e.target.value)} />
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Create</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <ClientCreateShiftDialog onCreated={loadShifts} />
         </div>
       </div>
+
+      <ClientBrandingCard />
 
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
@@ -347,6 +355,13 @@ function ClientPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+          <Users className="w-4 h-4" /> Your operatives
+        </h2>
+        <ClientOperativesList />
       </section>
 
       <ShiftDetailsSheet

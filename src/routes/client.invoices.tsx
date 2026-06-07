@@ -4,7 +4,8 @@ import { RequireRole } from "@/components/auth/RequireRole";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Receipt, AlertTriangle, CheckCircle2, HelpCircle } from "lucide-react";
+import { ArrowLeft, Receipt, AlertTriangle, CheckCircle2, HelpCircle, ThumbsUp, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/client/invoices")({
   component: () => (
@@ -25,6 +26,7 @@ type InvoiceItem = {
   gps_hours: number | null;
   variance_pct: number | null;
   check_status: string | null;
+  client_approval: string | null;
   shifts: {
     id: string;
     started_at: string | null;
@@ -101,6 +103,16 @@ function ClientInvoicesPage() {
     })();
   }, [user]);
 
+  const setApproval = async (itemId: string, approval: "approved" | "rejected" | "pending") => {
+    const { error } = await supabase
+      .from("invoice_items")
+      .update({ client_approval: approval })
+      .eq("id", itemId);
+    if (error) return toast.error(error.message);
+    setItems((arr) => arr.map((it) => (it.id === itemId ? { ...it, client_approval: approval } : it)));
+    toast.success(approval === "pending" ? "Approval reset" : `Marked ${approval}`);
+  };
+
   const byInvoice = items.reduce<Record<string, InvoiceItem[]>>((acc, it) => {
     (acc[it.invoice_id] = acc[it.invoice_id] || []).push(it);
     return acc;
@@ -172,8 +184,12 @@ function ClientInvoicesPage() {
                         {it.variance_pct !== null ? `${Number(it.variance_pct).toFixed(1)}%` : "—"}
                       </div>
                     </div>
-                    <div className="col-span-12 sm:col-span-2 flex justify-end">
+                    <div className="col-span-12 sm:col-span-2 flex flex-col items-end gap-1.5">
                       <StatusPill status={it.check_status} />
+                      <ApprovalControls
+                        approval={it.client_approval}
+                        onChange={(a) => setApproval(it.id, a)}
+                      />
                     </div>
                   </div>
                 ))}
@@ -205,5 +221,52 @@ function StatusPill({ status }: { status: string | null }) {
     <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-success/10 text-success">
       <CheckCircle2 className="w-3 h-3" /> Verified
     </span>
+  );
+}
+
+function ApprovalControls({
+  approval,
+  onChange,
+}: {
+  approval: string | null;
+  onChange: (a: "approved" | "rejected" | "pending") => void;
+}) {
+  if (approval === "approved") {
+    return (
+      <button
+        onClick={() => onChange("pending")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-success text-success-foreground hover:opacity-80"
+        title="Click to reset"
+      >
+        <ThumbsUp className="w-3 h-3" /> Approved
+      </button>
+    );
+  }
+  if (approval === "rejected") {
+    return (
+      <button
+        onClick={() => onChange("pending")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-destructive text-destructive-foreground hover:opacity-80"
+        title="Click to reset"
+      >
+        <ThumbsDown className="w-3 h-3" /> Rejected
+      </button>
+    );
+  }
+  return (
+    <div className="flex gap-1">
+      <button
+        onClick={() => onChange("approved")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border border-success text-success hover:bg-success/10"
+      >
+        <ThumbsUp className="w-3 h-3" /> Approve
+      </button>
+      <button
+        onClick={() => onChange("rejected")}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border border-destructive text-destructive hover:bg-destructive/10"
+      >
+        <ThumbsDown className="w-3 h-3" /> Reject
+      </button>
+    </div>
   );
 }

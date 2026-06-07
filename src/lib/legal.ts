@@ -174,3 +174,5 @@ export const LEGAL_DOCS: LegalDoc[] = [
 export function getLegalDoc(slug: string) {
   return LEGAL_DOCS.find((d) => d.slug === slug);
 }
+
+export const COPYRIGHT = `© ${new Date().getFullYear()} Light Work Live Ltd. All rights reserved.`;
