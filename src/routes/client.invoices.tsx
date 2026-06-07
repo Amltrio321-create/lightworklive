@@ -103,6 +103,16 @@ function ClientInvoicesPage() {
     })();
   }, [user]);
 
+  const setApproval = async (itemId: string, approval: "approved" | "rejected" | "pending") => {
+    const { error } = await supabase
+      .from("invoice_items")
+      .update({ client_approval: approval })
+      .eq("id", itemId);
+    if (error) return toast.error(error.message);
+    setItems((arr) => arr.map((it) => (it.id === itemId ? { ...it, client_approval: approval } : it)));
+    toast.success(approval === "pending" ? "Approval reset" : `Marked ${approval}`);
+  };
+
   const byInvoice = items.reduce<Record<string, InvoiceItem[]>>((acc, it) => {
     (acc[it.invoice_id] = acc[it.invoice_id] || []).push(it);
     return acc;
